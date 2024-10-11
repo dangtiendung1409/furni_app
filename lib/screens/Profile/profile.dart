@@ -56,7 +56,7 @@ class Profile extends StatelessWidget {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: const [
                               Text(
-                                "Winnie Vasquez",
+                                "dung",
                                 style: TextStyle(
                                   fontWeight: FontWeight.bold,
                                   fontSize: 22,
@@ -72,12 +72,6 @@ class Profile extends StatelessWidget {
                             ],
                           ),
                           const Spacer(),
-                          IconButton(
-                            icon: const Icon(Icons.edit),
-                            onPressed: () {
-                              // Điều hướng tới trang cập nhật thông tin cá nhân
-                            },
-                          ),
                         ],
                       ),
                       const SizedBox(height: 20),

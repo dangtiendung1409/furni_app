@@ -295,21 +295,20 @@ class OnBoarding {
 
 List<OnBoarding> onBoardinglist = [
   OnBoarding(
-    title: 'Shop Your Favorite Sofas Anytime, Anywhere',
+    title: 'Shop Sofas Anytime',
     image: ImagesPath.kOnboarding1,
-    description:
-        'Explore our wide collection of high-quality sofas from the comfort of your home. Shop conveniently at any time with just a few clicks.',
+    description: 'Explore our collection of high-quality sofas and shop comfortably from home, anytime. Say goodbye to the hassle of visiting physical stores—browse and buy with ease',
   ),
   OnBoarding(
-    title: 'Unique Designs, Tailored to Your Taste',
+    title: 'Tailored Designs',
     image: ImagesPath.kOnboarding2,
-    description:
-        'Discover sofas in various styles, colors, and materials to suit any space. Customize your furniture to reflect your personal style.',
+    description: 'From classic to contemporary, we offer a variety of sofa styles, colors, and materials, all customizable to match your preferences and home.',
   ),
   OnBoarding(
-    title: 'Exclusive Discounts and Premium Quality',
+    title: 'Exclusive Discounts',
     image: ImagesPath.kOnboarding3,
-    description:
-        'Get access to premium quality sofas at unbeatable prices. Enjoy exclusive discounts and promotions only available in our app.',
+    description: 'Get premium sofas at unbeatable prices with exclusive app-only offers and discounts for the best value.',
   ),
 ];
+
+

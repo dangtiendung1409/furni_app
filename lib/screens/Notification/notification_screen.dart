@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../Favorite/favorite.dart';
 import '../Cart/cart_screen.dart';
 import '../../constants.dart';
+import '../nav_bar_screen.dart'; 
 
 class NotificationScreen extends StatelessWidget {
   const NotificationScreen({super.key});
@@ -26,12 +27,11 @@ class NotificationScreen extends StatelessWidget {
               color: Colors.white, 
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => Favorite(),
-                ),
-              );
+              // Thay đổi currentIndex để chuyển sang màn hình Favorite
+              BottomNavBarState? bottomNavBarState = context.findAncestorStateOfType<BottomNavBarState>();
+              bottomNavBarState?.setState(() {
+                bottomNavBarState.cuttentIndex = 1; // Chỉ số của màn hình Favorite
+              });
             },
           ),
           IconButton(
@@ -40,18 +40,17 @@ class NotificationScreen extends StatelessWidget {
               color: Colors.white, 
             ),
             onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => CartScreen(),
-                ),
-              );
+              // Thay đổi currentIndex để chuyển sang màn hình Cart
+              BottomNavBarState? bottomNavBarState = context.findAncestorStateOfType<BottomNavBarState>();
+              bottomNavBarState?.setState(() {
+                bottomNavBarState.cuttentIndex = 3; // Chỉ số của màn hình CartScreen
+              });
             },
           ),
         ],
       ),
       body: ListView(
-        children: [
+        children: const [
           NotificationItem(
             title: 'Đơn hàng của bạn đã được giao',
             subtitle: 'Hãy kiểm tra đơn hàng của bạn.',
