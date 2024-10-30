@@ -1,6 +1,7 @@
+import 'dart:convert';
 import 'package:flutter_ecommerce/Provider/favorite_provider.dart';
 import 'package:flutter_ecommerce/constants.dart';
-import 'package:flutter_ecommerce/models/product_model.dart';
+import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/screens/Detail/detail_screen.dart';
 import 'package:flutter/material.dart';
 
@@ -25,6 +26,7 @@ class ProductCard extends StatelessWidget {
         children: [
           Container(
             width: double.infinity,
+            height: 250, // Tăng chiều cao của Container
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
               color: kcontentColor,
@@ -35,83 +37,79 @@ class ProductCard extends StatelessWidget {
                 const SizedBox(height: 5),
                 Center(
                   child: Hero(
-                    tag: product.image,
-                    child: Image.asset(
-                      product.image,
-                      width: 150,
-                      height: 150,
-                      fit: BoxFit.cover,
-                    ),
+                    tag: product.thumbnail ?? "",
+                    child: product.thumbnail != null
+                        ? Image.memory(
+                            base64Decode(product.thumbnail!),
+                            width: 150,
+                            height: 150,
+                            fit: BoxFit.cover,
+                          )
+                        : Container(
+                            width: 150,
+                            height: 150,
+                            color: Colors.grey,
+                          ),
                   ),
                 ),
                 const SizedBox(height: 10),
                 Padding(
                   padding: const EdgeInsets.only(left: 10),
                   child: Text(
-                    product.title,
+                    product.productName ?? "No Name",
                     style: const TextStyle(
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 14,
                     ),
                   ),
                 ),
                 const SizedBox(height: 10),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Text(
-                      "\$${product.price}",
-                      style: const TextStyle(
-                        fontWeight: FontWeight.bold,
-                        fontSize: 17,
-                      ),
-                    ),
-                    Row(
-                      children: List.generate(
-                        product.colors.length,
-                        (index) => Container(
-                          width: 18,
-                          height: 18,
-                          margin: const EdgeInsets.only(right: 4),
-                          decoration: BoxDecoration(
-                            color: product.colors[index],
-                            shape: BoxShape.circle,
-                          ),
+                Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 10),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      Text(
+                        "\$${product.price?.toStringAsFixed(2) ?? "0.00"}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                          fontSize: 14,
                         ),
                       ),
-                    )
-                  ],
-                )
+                    ],
+                  ),
+                ),
               ],
             ),
           ),
           Positioned(
-              child: Align(
-            alignment: Alignment.topRight,
-            child: Container(
-              height: 40,
-              width: 40,
-              decoration: const BoxDecoration(
-                color: kprimaryColor,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(20),
-                  bottomLeft: Radius.circular(10),
+            child: Align(
+              alignment: Alignment.topRight,
+              child: Container(
+                height: 40,
+                width: 40,
+                decoration: const BoxDecoration(
+                  color: kprimaryColor,
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(20),
+                    bottomLeft: Radius.circular(10),
+                  ),
                 ),
-              ),
-              child: GestureDetector(
-                onTap: () {
-                  provider.toggleFavorite(product);
-                },
-                child: Icon(
-                  provider.isExist(product)
-                      ? Icons.favorite
-                      : Icons.favorite_border,
-                  color: Colors.white,
-                  size: 22,
+                child: GestureDetector(
+                  onTap: () {
+                    provider.toggleFavorite(product);
+                  },
+                  child: Icon(
+                    provider.isExist(product)
+                        ? Icons.favorite
+                        : Icons.favorite_border,
+                    color: Colors.white,
+                    size: 22,
+                  ),
                 ),
               ),
             ),
-          ))
+          )
         ],
       ),
     );

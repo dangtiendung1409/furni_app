@@ -1,36 +1,41 @@
+import 'dart:convert';
+import 'dart:typed_data';
+import 'package:flutter/material.dart';
+
 class Category {
-  final String title;
-  final String image;
+  final int id;
+  final String categoryName;
+  final String image; // Giả sử đây là chuỗi Base64
+  final String? slug;
 
   Category({
-    required this.title,
+    required this.id,
+    required this.categoryName,
     required this.image,
+    this.slug,
   });
-}
 
-final List<Category> categoriesList = [
-  Category(
-    title: "All",
-    image: "images/all.png",
-  ),
-  Category(
-    title: "Shoes",
-    image: "images/shoes.png",
-  ),
-  Category(
-    title: "Beauty",
-    image: "images/beauty.png",
-  ),
-  Category(
-    title: "Women's\nFashion",
-    image: "images/image1.png",
-  ),
-  Category(
-    title: "Jewelry",
-    image: "images/jewelry.png",
-  ),
-  Category(
-    title: "Men's\nFashion",
-    image: "images/men.png",
-  ),
-];
+  factory Category.fromJson(Map<String, dynamic> json) {
+    return Category(
+      id: json['id'] ?? 0,
+      categoryName: json['category_name'] ?? '',
+      image: json['image'] ?? '', // Đây sẽ là chuỗi Base64
+      slug: json['slug'],
+    );
+  }
+
+  // Phương thức để chuyển đổi từ đối tượng Category sang JSON
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'category_name': categoryName,
+      'image': image,
+      'slug': slug,
+    };
+  }
+
+  // Phương thức để chuyển đổi hình ảnh Base64 thành Uint8List
+  Uint8List getImageFromBase64() {
+    return base64Decode(image);
+  }
+}

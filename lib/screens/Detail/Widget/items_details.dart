@@ -1,5 +1,5 @@
 import 'package:flutter_ecommerce/constants.dart';
-import 'package:flutter_ecommerce/models/product_model.dart';
+import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter/material.dart';
 
 class ItemsDetails extends StatelessWidget {
@@ -11,13 +11,13 @@ class ItemsDetails extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          product.title,
-          style: const TextStyle(
-            fontWeight: FontWeight.w800,
-            fontSize: 25,
-          ),
-        ),
+        // Text(
+        //   product.title,
+        //   style: const TextStyle(
+        //     fontWeight: FontWeight.w800,
+        //     fontSize: 25,
+        //   ),
+        // ),
         Row(
           children: [
             Column(
@@ -53,25 +53,25 @@ class ItemsDetails extends StatelessWidget {
                           const SizedBox(
                             width: 3,
                           ),
-                          Text(
-                            product.rate.toString(),
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
-                          ),
+                          // Text(
+                          //   product.rate.toString(),
+                          //   style: const TextStyle(
+                          //     fontWeight: FontWeight.bold,
+                          //     color: Colors.white,
+                          //     fontSize: 14,
+                          //   ),
+                          // ),
                         ],
                       ),
                     ),
                     const SizedBox(width: 5),
-                    Text(
-                      product.review,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 15,
-                      ),
-                    )
+                    // Text(
+                    //   product.review,
+                    //   style: const TextStyle(
+                    //     color: Colors.grey,
+                    //     fontSize: 15,
+                    //   ),
+                    // )
                   ],
                 )
               ],
@@ -84,11 +84,11 @@ class ItemsDetails extends StatelessWidget {
                     text: "Seller: ",
                     style: TextStyle(fontSize: 16),
                   ),
-                  TextSpan(
-                    text: product.seller,
-                    style: const TextStyle(
-                        fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
+                  // TextSpan(
+                  //   text: product.seller,
+                  //   style: const TextStyle(
+                  //       fontSize: 16, fontWeight: FontWeight.bold),
+                  // ),
                 ],
               ),
             ),

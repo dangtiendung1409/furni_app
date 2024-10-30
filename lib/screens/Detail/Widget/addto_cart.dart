@@ -1,6 +1,6 @@
 import 'package:flutter_ecommerce/Provider/add_to_cart_provider.dart';
 import 'package:flutter_ecommerce/constants.dart';
-import 'package:flutter_ecommerce/models/product_model.dart';
+import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter/material.dart';
 
 class AddToCart extends StatefulWidget {
@@ -16,7 +16,7 @@ class _AddToCartState extends State<AddToCart> {
 
   @override
   Widget build(BuildContext context) {
-    final provider = CartProvider.of(context);
+    // final provider = CartProvider.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Container(
@@ -78,7 +78,7 @@ class _AddToCartState extends State<AddToCart> {
             ),
             GestureDetector(
               onTap: () {
-                provider.toogleFavorite(widget.product);
+                // provider.toogleFavorite(widget.product);
                 // if items is add then show this snackbar
                 const snackBar = SnackBar(
                   content: Text(

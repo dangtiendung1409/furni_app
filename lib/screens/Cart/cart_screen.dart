@@ -14,15 +14,15 @@ class CartScreen extends StatefulWidget {
 class _CartScreenState extends State<CartScreen> {
   @override
   Widget build(BuildContext context) {
-    final provider = CartProvider.of(context);
-    final finalList = provider.cart;
+    // final provider = CartProvider.of(context);
+    // final finalList = provider.cart;
     producrQuantity(IconData icon, int index) {
       return GestureDetector(
         onTap: () {
           setState(() {
-            icon == Icons.add
-                ? provider.incrementQtn(index)
-                : provider.decrementQtn(index);
+            // icon == Icons.add
+            //     ? provider.incrementQtn(index)
+            //     : provider.decrementQtn(index);
           });
         },
         child: Icon(
@@ -85,9 +85,9 @@ class _CartScreenState extends State<CartScreen> {
             Expanded(
               child: ListView.builder(
                 shrinkWrap: true,
-                itemCount: finalList.length,
+                // itemCount: finalList.length,
                 itemBuilder: (context, index) {
-                  final cartItems = finalList[index];
+                  // final cartItems = finalList[index];
                   return Stack(
                     children: [
                       Padding(
@@ -108,38 +108,38 @@ class _CartScreenState extends State<CartScreen> {
                                   borderRadius: BorderRadius.circular(20),
                                   color: kcontentColor,
                                 ),
-                                child: Image.asset(cartItems.image),
+                                // child: Image.asset(cartItems.image),
                               ),
                               const SizedBox(width: 10),
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    cartItems.title,
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
-                                  ),
+                                  // Text(
+                                  //   cartItems.title,
+                                  //   style: const TextStyle(
+                                  //     fontWeight: FontWeight.bold,
+                                  //     fontSize: 16,
+                                  //   ),
+                                  // ),
                                   const SizedBox(
                                     height: 5,
                                   ),
-                                  Text(
-                                    cartItems.category,
-                                    style: TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                      color: Colors.grey.shade400,
-                                    ),
-                                  ),
+                                  // Text(
+                                  //   // cartItems.category,
+                                  //   style: TextStyle(
+                                  //     fontWeight: FontWeight.bold,
+                                  //     fontSize: 14,
+                                  //     color: Colors.grey.shade400,
+                                  //   ),
+                                  // ),
                                   const SizedBox(height: 10),
-                                  Text(
-                                    "\$${cartItems.price}",
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 14,
-                                    ),
-                                  ),
+                                  // Text(
+                                  //   "\$${cartItems.price}",
+                                  //   style: const TextStyle(
+                                  //     fontWeight: FontWeight.bold,
+                                  //     fontSize: 14,
+                                  //   ),
+                                  // ),
                                 ],
                               ),
                             ],
@@ -155,7 +155,7 @@ class _CartScreenState extends State<CartScreen> {
                             IconButton(
                               onPressed: () {
                                 // For remove items from cart
-                                finalList.removeAt(index);
+                                // finalList.removeAt(index);
                                 setState(() {});
                               },
                               icon: const Icon(
@@ -180,13 +180,13 @@ class _CartScreenState extends State<CartScreen> {
                                   const SizedBox(width: 10),
                                   producrQuantity(Icons.add, index),
                                   const SizedBox(width: 10),
-                                  Text(
-                                    cartItems.quantity.toString(),
-                                    style: const TextStyle(
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.black,
-                                    ),
-                                  ),
+                                  // Text(
+                                  //   cartItems.quantity.toString(),
+                                  //   style: const TextStyle(
+                                  //     fontWeight: FontWeight.bold,
+                                  //     color: Colors.black,
+                                  //   ),
+                                  // ),
                                   const SizedBox(width: 10),
                                   producrQuantity(Icons.remove, index),
                                   const SizedBox(width: 10),

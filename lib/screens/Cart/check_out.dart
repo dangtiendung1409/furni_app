@@ -8,7 +8,7 @@ class CheckOutBox extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = CartProvider.of(context);
+    // final provider = CartProvider.of(context);
     return Container(
       height: 300,
       width: double.infinity,
@@ -65,13 +65,13 @@ class CheckOutBox extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
-              Text(
-                "\$${provider.totalPrice()}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                ),
-              )
+              // Text(
+              //   "\$${provider.totalPrice()}",
+              //   style: const TextStyle(
+              //     fontWeight: FontWeight.bold,
+              //     fontSize: 16,
+              //   ),
+              // )
             ],
           ),
           const SizedBox(height: 10),
@@ -87,13 +87,13 @@ class CheckOutBox extends StatelessWidget {
                   fontSize: 18,
                 ),
               ),
-              Text(
-                "\$${provider.totalPrice()}",
-                style: const TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 18,
-                ),
-              )
+              // Text(
+              //   "\$${provider.totalPrice()}",
+              //   style: const TextStyle(
+              //     fontWeight: FontWeight.bold,
+              //     fontSize: 18,
+              //   ),
+              // )
             ],
           ),
           const SizedBox(height: 20),

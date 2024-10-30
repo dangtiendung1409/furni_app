@@ -82,28 +82,28 @@ class _FavoriteState extends State<Favorite> {
                                     color: kcontentColor,
                                     borderRadius: BorderRadius.circular(20),
                                   ),
-                                  child: Image.asset(favoriteItems.image),
+                                  // child: Image.asset(favoriteItems.image),
                                 ),
                                 const SizedBox(width: 10),
                                 Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(
-                                      favoriteItems.title,
-                                      style: const TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        fontSize: 16,
-                                      ),
-                                    ),
+                                    // Text(
+                                    //   favoriteItems.title,
+                                    //   style: const TextStyle(
+                                    //     fontWeight: FontWeight.bold,
+                                    //     fontSize: 16,
+                                    //   ),
+                                    // ),
                                     const SizedBox(height: 5),
-                                    Text(
-                                      favoriteItems.category,
-                                      style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                        color: Colors.grey.shade400,
-                                        fontSize: 16,
-                                      ),
-                                    ),
+                                    // Text(
+                                    //   favoriteItems.category,
+                                    //   style: TextStyle(
+                                    //     fontWeight: FontWeight.bold,
+                                    //     color: Colors.grey.shade400,
+                                    //     fontSize: 16,
+                                    //   ),
+                                    // ),
                                     const SizedBox(height: 10),
                                     Text(
                                       "\$${favoriteItems.price}",

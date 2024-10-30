@@ -1,5 +1,5 @@
 import 'package:flutter_ecommerce/constants.dart';
-import 'package:flutter_ecommerce/models/product_model.dart';
+import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/addto_cart.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/description.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/detail_app_bar.dart';
@@ -33,14 +33,14 @@ class _DetailScreenState extends State<DetailScreen> {
             // for back button share and favorite,
             DetailAppBar(product: widget.product,),
             // for detail image slider
-            MyImageSlider(
-              image: widget.product.image,
-              onChange: (index) {
-                setState(() {
-                  currentImage = index;
-                });
-              },
-            ),
+            // MyImageSlider(
+            //   image: widget.product.image,
+            //   onChange: (index) {
+            //     setState(() {
+            //       currentImage = index;
+            //     });
+            //   },
+            // ),
             const SizedBox(height: 10),
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
@@ -90,48 +90,48 @@ class _DetailScreenState extends State<DetailScreen> {
                     style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
                   ),
                   const SizedBox(height: 20),
-                  Row(
-                    children: List.generate(
-                      widget.product.colors.length,
-                      (index) => GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            currentColor = index;
-                          });
-                        },
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: 40,
-                          height: 40,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: currentColor == index
-                                ? Colors.white
-                                : widget.product.colors[index],
-                            border: currentColor == index
-                                ? Border.all(
-                                    color: widget.product.colors[index],
-                                  )
-                                : null,
-                          ),
-                          padding: currentColor == index
-                              ? const EdgeInsets.all(2)
-                              : null,
-                          margin: const EdgeInsets.only(right: 10),
-                          child: Container(
-                            width: 35,
-                            height: 35,
-                            decoration: BoxDecoration(
-                                color: widget.product.colors[index],
-                                shape: BoxShape.circle),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                   const SizedBox(height: 25),
-                   // for description
-                   Description(description: widget.product.description,)
+                  // Row(
+                  //   children: List.generate(
+                  //     widget.product.colors.length,
+                  //     (index) => GestureDetector(
+                  //       onTap: () {
+                  //         setState(() {
+                  //           currentColor = index;
+                  //         });
+                  //       },
+                  //       child: AnimatedContainer(
+                  //         duration: const Duration(milliseconds: 300),
+                  //         width: 40,
+                  //         height: 40,
+                  //         decoration: BoxDecoration(
+                  //           shape: BoxShape.circle,
+                  //           color: currentColor == index
+                  //               ? Colors.white
+                  //               : widget.product.colors[index],
+                  //           border: currentColor == index
+                  //               ? Border.all(
+                  //                   color: widget.product.colors[index],
+                  //                 )
+                  //               : null,
+                  //         ),
+                  //         padding: currentColor == index
+                  //             ? const EdgeInsets.all(2)
+                  //             : null,
+                  //         margin: const EdgeInsets.only(right: 10),
+                  //         child: Container(
+                  //           width: 35,
+                  //           height: 35,
+                  //           decoration: BoxDecoration(
+                  //               color: widget.product.colors[index],
+                  //               shape: BoxShape.circle),
+                  //         ),
+                  //       ),
+                  //     ),
+                  //   ),
+                  // ),
+                  //  const SizedBox(height: 25),
+                  //  // for description
+                  //  Description(description: widget.product.description,)
                 ],
               ),
             )
