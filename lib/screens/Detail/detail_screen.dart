@@ -1,11 +1,13 @@
+import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce/constants.dart';
 import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/addto_cart.dart';
-import 'package:flutter_ecommerce/screens/Detail/Widget/description.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/detail_app_bar.dart';
-import 'package:flutter_ecommerce/screens/Detail/Widget/image_slider.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/items_details.dart';
-import 'package:flutter/material.dart';
+import 'package:flutter_ecommerce/screens/Detail/Widget/custom_tab_bar.dart';
+import 'package:flutter_ecommerce/screens/Detail/Widget/related_products.dart'; 
+import '../../service/ProductService.dart';
+import 'dart:convert';
 
 class DetailScreen extends StatefulWidget {
   final Product product;
@@ -15,129 +17,104 @@ class DetailScreen extends StatefulWidget {
   State<DetailScreen> createState() => _DetailScreenState();
 }
 
-class _DetailScreenState extends State<DetailScreen> {
-  int currentImage = 0;
-  int currentColor = 1;
+class _DetailScreenState extends State<DetailScreen>
+    with SingleTickerProviderStateMixin {
+  late List<Product> relatedProducts = [];
+  late TabController _tabController;
+  int _selectedTabIndex = 0;
+  final ProductService productService = ProductService();
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchRelatedProducts();
+    _tabController = TabController(length: 3, vsync: this);
+  }
+
+  Future<void> _fetchRelatedProducts() async {
+    // Lấy sản phẩm liên quan
+    try {
+      relatedProducts =
+          await productService.fetchRelatedProducts(widget.product.id!);
+      setState(() {}); // Cập nhật giao diện khi dữ liệu được tải
+    } catch (e) {
+      print(e);
+    }
+  }
+
+  void _onTabTapped(int index) {
+    setState(() {
+      _selectedTabIndex = index;
+    });
+    _tabController.index = index; // Cập nhật tab controller
+  }
+
+  @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: kcontentColor,
-      // for add to cart , icon and quantity
       floatingActionButton: AddToCart(product: widget.product),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       body: SafeArea(
-          child: SingleChildScrollView(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // for back button share and favorite,
-            DetailAppBar(product: widget.product,),
-            // for detail image slider
-            // MyImageSlider(
-            //   image: widget.product.image,
-            //   onChange: (index) {
-            //     setState(() {
-            //       currentImage = index;
-            //     });
-            //   },
-            // ),
-            const SizedBox(height: 10),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                5,
-                (index) => AnimatedContainer(
-                  duration: const Duration(microseconds: 300),
-                  width: currentImage == index ? 15 : 8,
-                  height: 8,
-                  margin: const EdgeInsets.only(right: 3),
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(10),
-                    color: currentImage == index
-                        ? Colors.black
-                        : Colors.transparent,
-                    border: Border.all(
-                      color: Colors.black,
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              DetailAppBar(product: widget.product),
+              const SizedBox(height: 10),
+
+              // Hiển thị ảnh sản phẩm từ Base64
+              if (widget.product.thumbnail != null)
+                Image.memory(
+                  base64Decode(widget.product.thumbnail!),
+                  width: double.infinity,
+                  height: 200,
+                  fit: BoxFit.cover,
+                )
+              else
+                const Center(child: Text("No Image Available")),
+
+              Container(
+                width: double.infinity,
+                decoration: const BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.only(
+                    topRight: Radius.circular(40),
+                    topLeft: Radius.circular(40),
+                  ),
+                ),
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    ItemsDetails(product: widget.product),
+                    const SizedBox(height: 20),
+
+                    // Sử dụng widget CustomTabBarView
+                    CustomTabBarView(
+                      tabController: _tabController,
+                      selectedIndex: _selectedTabIndex,
+                      onTabSelected: _onTabTapped,
+                      product: widget.product, // Truyền product vào
                     ),
-                  ),
+
+                    const SizedBox(height: 20),
+
+                    // Sử dụng widget RelatedProducts
+                    RelatedProducts(relatedProducts: relatedProducts),
+                  ],
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            Container(
-              width: double.infinity,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.only(
-                  topRight: Radius.circular(40),
-                  topLeft: Radius.circular(40),
-                ),
-              ),
-              padding: const EdgeInsets.only(
-                left: 20,
-                right: 20,
-                top: 20,
-                bottom: 100,
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  // for product name, price, rating, and seller
-                  ItemsDetails(product: widget.product),
-                  const SizedBox(height: 20),
-                  const Text(
-                    "Color",
-                    style: TextStyle(fontWeight: FontWeight.bold, fontSize: 22),
-                  ),
-                  const SizedBox(height: 20),
-                  // Row(
-                  //   children: List.generate(
-                  //     widget.product.colors.length,
-                  //     (index) => GestureDetector(
-                  //       onTap: () {
-                  //         setState(() {
-                  //           currentColor = index;
-                  //         });
-                  //       },
-                  //       child: AnimatedContainer(
-                  //         duration: const Duration(milliseconds: 300),
-                  //         width: 40,
-                  //         height: 40,
-                  //         decoration: BoxDecoration(
-                  //           shape: BoxShape.circle,
-                  //           color: currentColor == index
-                  //               ? Colors.white
-                  //               : widget.product.colors[index],
-                  //           border: currentColor == index
-                  //               ? Border.all(
-                  //                   color: widget.product.colors[index],
-                  //                 )
-                  //               : null,
-                  //         ),
-                  //         padding: currentColor == index
-                  //             ? const EdgeInsets.all(2)
-                  //             : null,
-                  //         margin: const EdgeInsets.only(right: 10),
-                  //         child: Container(
-                  //           width: 35,
-                  //           height: 35,
-                  //           decoration: BoxDecoration(
-                  //               color: widget.product.colors[index],
-                  //               shape: BoxShape.circle),
-                  //         ),
-                  //       ),
-                  //     ),
-                  //   ),
-                  // ),
-                  //  const SizedBox(height: 25),
-                  //  // for description
-                  //  Description(description: widget.product.description,)
-                ],
-              ),
-            )
-          ],
+            ],
+          ),
         ),
-      )),
+      ),
     );
   }
 }

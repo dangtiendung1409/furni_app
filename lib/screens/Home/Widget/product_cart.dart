@@ -1,9 +1,8 @@
-import 'dart:convert';
-import 'package:flutter_ecommerce/Provider/favorite_provider.dart';
-import 'package:flutter_ecommerce/constants.dart';
-import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/screens/Detail/detail_screen.dart';
 import 'package:flutter/material.dart';
+import '../../../service/ProductService.dart';
+import '../../../models/product.dart';
+import 'dart:convert';
 
 class ProductCard extends StatelessWidget {
   final Product product;
@@ -11,25 +10,30 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final provider = FavoriteProvider.of(context);
-
     return GestureDetector(
-      onTap: () {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => DetailScreen(product: product),
-          ),
-        );
+      onTap: () async {
+        try {
+          print('Product ID: ${product.id}');
+          // Chuyển tới trang chi tiết sản phẩm với dữ liệu lấy được
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => DetailScreen(product: product), // Truyền product
+            ),
+          );
+        } catch (e) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(content: Text('Failed to load product details: $e')),
+          );
+        }
       },
       child: Stack(
         children: [
           Container(
             width: double.infinity,
-            height: 250, // Tăng chiều cao của Container
+            height: 250,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(20),
-              color: kcontentColor,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -89,27 +93,19 @@ class ProductCard extends StatelessWidget {
                 height: 40,
                 width: 40,
                 decoration: const BoxDecoration(
-                  color: kprimaryColor,
                   borderRadius: BorderRadius.only(
                     topRight: Radius.circular(20),
                     bottomLeft: Radius.circular(10),
                   ),
                 ),
-                child: GestureDetector(
-                  onTap: () {
-                    provider.toggleFavorite(product);
-                  },
-                  child: Icon(
-                    provider.isExist(product)
-                        ? Icons.favorite
-                        : Icons.favorite_border,
-                    color: Colors.white,
-                    size: 22,
-                  ),
+                child: Icon(
+                  Icons.favorite_border,
+                  color: Colors.white,
+                  size: 22,
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
