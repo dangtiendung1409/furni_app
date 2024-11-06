@@ -1,7 +1,8 @@
-import 'package:flutter_ecommerce/Provider/add_to_cart_provider.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce/constants.dart';
 import 'package:flutter_ecommerce/models/product.dart';
-import 'package:flutter/material.dart';
+import '../../../service/CartService.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 class AddToCart extends StatefulWidget {
   final Product product;
@@ -13,10 +14,69 @@ class AddToCart extends StatefulWidget {
 
 class _AddToCartState extends State<AddToCart> {
   int currentIndex = 1;
+  final CartService cartService = CartService();
+
+  Future<void> _handleAddToCart() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
+
+      // In ra token để kiểm tra
+      print("Token: $token");
+
+      if (token == null) {
+        throw Exception("Người dùng chưa đăng nhập");
+      }
+
+      // Tính tổng giá trị sản phẩm
+      double total = (widget.product.price ?? 0) * currentIndex;
+
+      // In ra thông tin sản phẩm và số lượng
+      print("Thêm sản phẩm vào giỏ hàng:");
+      print("Product ID: ${widget.product.id}");
+      print("Quantity: $currentIndex");
+      print("Total: $total");
+
+      // Gọi service để thêm sản phẩm vào giỏ hàng
+      final cartResponse =
+          await cartService.addToCart(widget.product.id!, currentIndex, token);
+
+      // In ra phản hồi từ server
+      print("Phản hồi từ server: ${cartResponse.toString()}");
+
+      // Hiển thị thông báo thành công
+      const snackBar = SnackBar(
+        content: Text(
+          "Thêm vào giỏ hàng thành công!",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            fontSize: 20,
+            color: Colors.white,
+          ),
+        ),
+        duration: Duration(seconds: 2),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    } catch (e) {
+      // In ra lỗi để kiểm tra
+      print("Lỗi khi thêm vào giỏ hàng: $e");
+
+      final snackBar = SnackBar(
+        content: Text(
+          "Thất bại khi thêm vào giỏ hàng: ${e.toString()}",
+          style: const TextStyle(
+            color: Colors.white,
+            fontSize: 16,
+          ),
+        ),
+        duration: const Duration(seconds: 2),
+      );
+      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    // final provider = CartProvider.of(context);
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 15),
       child: Container(
@@ -77,22 +137,7 @@ class _AddToCartState extends State<AddToCart> {
               ),
             ),
             GestureDetector(
-              onTap: () {
-                // provider.toogleFavorite(widget.product);
-                // if items is add then show this snackbar
-                const snackBar = SnackBar(
-                  content: Text(
-                    "Successfully added!",
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 25,
-                      color: Colors.white,
-                    ),
-                  ),
-                  duration: Duration(seconds: 1),
-                );
-                ScaffoldMessenger.of(context).showSnackBar(snackBar);
-              },
+              onTap: _handleAddToCart,
               child: Container(
                 height: 55,
                 decoration: BoxDecoration(

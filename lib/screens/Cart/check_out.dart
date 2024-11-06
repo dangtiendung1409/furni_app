@@ -4,13 +4,14 @@ import '../CheckOut/check_out_screen.dart';
 import 'package:flutter/material.dart';
 
 class CheckOutBox extends StatelessWidget {
-  const CheckOutBox({super.key});
+  final double subtotal;
+
+  const CheckOutBox({super.key, required this.subtotal});
 
   @override
   Widget build(BuildContext context) {
-    // final provider = CartProvider.of(context);
     return Container(
-      height: 300,
+      height: 210,
       width: double.infinity,
       decoration: const BoxDecoration(
         color: Colors.white,
@@ -22,38 +23,7 @@ class CheckOutBox extends StatelessWidget {
       padding: const EdgeInsets.all(20),
       child: Column(
         children: [
-          TextField(
-            decoration: InputDecoration(
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(30),
-                borderSide: BorderSide.none,
-              ),
-              contentPadding: const EdgeInsets.symmetric(
-                vertical: 5,
-                horizontal: 15,
-              ),
-              filled: true,
-              fillColor: kcontentColor,
-              hintText: "Enter Discoutn Code",
-              hintStyle: const TextStyle(
-                color: Colors.grey,
-                fontWeight: FontWeight.w600,
-                fontSize: 14,
-              ),
-              suffixIcon: TextButton(
-                onPressed: () {},
-                child: const Text(
-                  "Apply",
-                  style: TextStyle(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 20,
-                    color: kprimaryColor,
-                  ),
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: 20),
+          // Other widgets...
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -65,13 +35,13 @@ class CheckOutBox extends StatelessWidget {
                   fontSize: 16,
                 ),
               ),
-              // Text(
-              //   "\$${provider.totalPrice()}",
-              //   style: const TextStyle(
-              //     fontWeight: FontWeight.bold,
-              //     fontSize: 16,
-              //   ),
-              // )
+              Text(
+                "\$${subtotal.toStringAsFixed(2)}",
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 10),
@@ -81,42 +51,42 @@ class CheckOutBox extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                "total",
+                "Total",
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
                   fontSize: 18,
                 ),
               ),
-              // Text(
-              //   "\$${provider.totalPrice()}",
-              //   style: const TextStyle(
-              //     fontWeight: FontWeight.bold,
-              //     fontSize: 18,
-              //   ),
-              // )
+              Text(
+                "\$${subtotal.toStringAsFixed(2)}", // For simplicity, using subtotal as total
+                style: const TextStyle(
+                  fontWeight: FontWeight.bold,
+                  fontSize: 18,
+                ),
+              ),
             ],
           ),
           const SizedBox(height: 20),
           ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: kprimaryColor,
-                minimumSize: const Size(double.infinity, 55),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: kprimaryColor,
+              minimumSize: const Size(double.infinity, 55),
+            ),
+            onPressed: () {
+              Navigator.push(context,
+                  MaterialPageRoute(builder: (context) => const CheckOutScreen()));
+            },
+            child: const Text(
+              "Check Out",
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+                color: Colors.white,
               ),
-              onPressed: () {
-                Navigator.push(context,
-                MaterialPageRoute(builder: (context) => const CheckOutScreen()));
-              },
-              child: const Text(
-                "Check Out",
-                style: TextStyle(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 16,
-                  color: Colors.white,
-                ),
-              ))
+            ),
+          ),
         ],
       ),
     );
   }
 }
-// now we add the provider and display the total price
