@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/constants.dart';
+
 class CustomTabBarView extends StatelessWidget {
   final TabController tabController;
   final int selectedIndex;
@@ -51,7 +52,7 @@ class CustomTabBarView extends StatelessWidget {
             children: [
               Padding(
                 padding: const EdgeInsets.all(8.0),
-                child: Text("Nội dung mô tả sản phẩm ở đây."),
+                child: Text(product.description ?? "Mô tả sản phẩm không có sẵn."), // Hiển thị description của sản phẩm
               ),
               Padding(
                 padding: const EdgeInsets.all(8.0),

@@ -21,33 +21,38 @@ class _AddToCartState extends State<AddToCart> {
       final prefs = await SharedPreferences.getInstance();
       String? token = prefs.getString('token');
 
-      // In ra token để kiểm tra
-      print("Token: $token");
-
       if (token == null) {
-        throw Exception("Người dùng chưa đăng nhập");
+        throw Exception("User is not logged in");
+      }
+
+      // Kiểm tra số lượng sản phẩm có đủ hay không
+      int availableQty = await cartService.checkProductQty(widget.product.id!);
+      if (currentIndex > availableQty) {
+        // Nếu số lượng yêu cầu lớn hơn số lượng có sẵn, thông báo cho người dùng
+        const snackBar = SnackBar(
+          content: Text(
+            "This product is out of stock. The remaining quantity is not enough.",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
+          ),
+          duration: Duration(seconds: 2),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+        return;  // Dừng quá trình thêm vào giỏ hàng
       }
 
       // Tính tổng giá trị sản phẩm
       double total = (widget.product.price ?? 0) * currentIndex;
 
-      // In ra thông tin sản phẩm và số lượng
-      print("Thêm sản phẩm vào giỏ hàng:");
-      print("Product ID: ${widget.product.id}");
-      print("Quantity: $currentIndex");
-      print("Total: $total");
-
-      // Gọi service để thêm sản phẩm vào giỏ hàng
-      final cartResponse =
-          await cartService.addToCart(widget.product.id!, currentIndex, token);
-
-      // In ra phản hồi từ server
-      print("Phản hồi từ server: ${cartResponse.toString()}");
+      // Thêm sản phẩm vào giỏ hàng
+      final cartResponse = await cartService.addToCart(widget.product.id!, currentIndex, token);
 
       // Hiển thị thông báo thành công
       const snackBar = SnackBar(
         content: Text(
-          "Thêm vào giỏ hàng thành công!",
+          "Added to cart successfully!",
           style: TextStyle(
             fontWeight: FontWeight.bold,
             fontSize: 20,
@@ -57,21 +62,22 @@ class _AddToCartState extends State<AddToCart> {
         duration: Duration(seconds: 2),
       );
       ScaffoldMessenger.of(context).showSnackBar(snackBar);
-    } catch (e) {
-      // In ra lỗi để kiểm tra
-      print("Lỗi khi thêm vào giỏ hàng: $e");
 
-      final snackBar = SnackBar(
-        content: Text(
-          "Thất bại khi thêm vào giỏ hàng: ${e.toString()}",
-          style: const TextStyle(
-            color: Colors.white,
-            fontSize: 16,
+    } catch (e) {
+      // Tránh báo lỗi chung, chỉ thông báo cho người dùng về việc hết hàng nếu cần
+      if (e.toString().contains("This product is out of stock")) {
+        const snackBar = SnackBar(
+          content: Text(
+            "This product is out of stock. The remaining quantity is not enough.",
+            style: TextStyle(
+              color: Colors.white,
+              fontSize: 16,
+            ),
           ),
-        ),
-        duration: const Duration(seconds: 2),
-      );
-      ScaffoldMessenger.of(context).showSnackBar(snackBar);
+          duration: Duration(seconds: 2),
+        );
+        ScaffoldMessenger.of(context).showSnackBar(snackBar);
+      }
     }
   }
 

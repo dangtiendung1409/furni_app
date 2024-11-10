@@ -87,7 +87,7 @@ class ThankYouScreen extends StatelessWidget {
               borderRadius: BorderRadius.circular(8),
             ),
             child: Text(
-              "Your order has been placed successfully. Order #12345 will be processed soon.",
+              "Your order has been placed successfully. Order will be processed soon.",
               style: TextStyle(fontSize: 16, color: Colors.white),
             ),
           ),

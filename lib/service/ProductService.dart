@@ -54,4 +54,44 @@ class ProductService {
       throw Exception('Failed to load related products for product $productId');
     }
   }
+
+  // hàm giảm qty khi đặt order thành công
+  Future<void> updateProductQuantity(
+      String token, int productId, int qtyInCart) async {
+    // Lấy thông tin sản phẩm trước khi giảm số lượng
+    final productResponse = await http.get(
+      Uri.parse('$baseUrl/productDetail/$productId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+      },
+    );
+
+    if (productResponse.statusCode != 200) {
+      throw Exception('Failed to load product');
+    }
+
+    final product = jsonDecode(productResponse.body);
+
+    // Lấy số lượng hiện tại của sản phẩm
+    int currentQty = product['data']['qty'];
+
+    // Trừ số lượng trong giỏ hàng vào số lượng hiện tại
+    int updatedQty = currentQty - qtyInCart;
+
+    // Gửi yêu cầu cập nhật số lượng sản phẩm
+    final response = await http.patch(
+      Uri.parse('$baseUrl/updateQty/$productId'),
+      headers: {
+        'Authorization': 'Bearer $token',
+        'Content-Type': 'application/json',
+      },
+      body: jsonEncode({
+        "qty": qtyInCart, // Chỉ cần gửi số lượng từ giỏ hàng
+      }),
+    );
+
+    if (response.statusCode != 200) {
+      throw Exception('Failed to update product quantity');
+    }
+  }
 }

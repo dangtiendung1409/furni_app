@@ -2,7 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import 'package:flutter_ecommerce/Provider/add_to_cart_provider.dart';
-import 'package:flutter_ecommerce/screens/Cart/check_out.dart';
+import '../CheckOut/check_out_screen.dart';
 import '../../constants.dart';
 import '../../service/CartService.dart';
 import 'package:flutter_ecommerce/models/cart.dart';
@@ -48,7 +48,8 @@ class _CartScreenState extends State<CartScreen> {
         _cartItems = CartService().fetchCart(token);
       });
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Sản phẩm đã được xóa khỏi giỏ hàng")),
+        const SnackBar(
+            content: Text("The product has been removed from the cart")),
       );
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -59,16 +60,33 @@ class _CartScreenState extends State<CartScreen> {
 
   Future<void> _updateCart(int productId, int qty) async {
     try {
+      int availableQty = await CartService().checkProductQty(productId);
+
+      if (qty > availableQty) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+              content: Text(
+                  "Not enough stock. Currently only: $availableQty products")),
+        );
+        return;
+      }
+
+      // Cập nhật giỏ hàng
       await CartService().updateCart(productId, qty, token);
+
+      // Sau khi cập nhật thành công, gọi lại để lấy giỏ hàng mới
       setState(() {
         _cartItems = CartService().fetchCart(token);
       });
+
+      // Hiển thị SnackBar thông báo thành công
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Số lượng sản phẩm đã được cập nhật")),
+        const SnackBar(content: Text("Product quantity has been updated")),
       );
     } catch (e) {
+      // Trường hợp lỗi khác (ví dụ lỗi mạng, API thất bại), hiển thị thông báo lỗi chung
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Lỗi: ${e.toString()}")),
+        SnackBar(content: Text("An error occurred. Please try again!")),
       );
     }
   }
@@ -82,8 +100,18 @@ class _CartScreenState extends State<CartScreen> {
         ),
       );
     }
-
     return Scaffold(
+      appBar: AppBar(
+        backgroundColor: kprimaryColor,
+        title: const Text(
+          "Cart",
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+            fontSize: 25,
+          ),
+        ),
+      ),
       backgroundColor: kcontentColor,
       bottomSheet: FutureBuilder<List<Cart>>(
         future: CartService().fetchCart(token),
@@ -103,7 +131,90 @@ class _CartScreenState extends State<CartScreen> {
           List<Cart> cartItems = snapshot.data!;
           double subtotal = getSubtotal(cartItems);
 
-          return CheckOutBox(subtotal: subtotal);
+          return Container(
+            height: 210,
+            width: double.infinity,
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.only(
+                topRight: Radius.circular(30),
+                bottomLeft: Radius.circular(30),
+              ),
+            ),
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              children: [
+                // Other widgets...
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "SubTotal",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.grey,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      "\$${subtotal.toStringAsFixed(2)}",
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 10),
+                const Divider(),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    const Text(
+                      "Total",
+                      style: TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                    Text(
+                      "\$${subtotal.toStringAsFixed(2)}", // For simplicity, using subtotal as total
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 18,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 20),
+                ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: kprimaryColor,
+                    minimumSize: const Size(double.infinity, 55),
+                  ),
+                  onPressed: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CheckOutScreen(
+                            cartItems: cartItems,
+                            subtotal: subtotal), // Truyền dữ liệu ở đây
+                      ),
+                    );
+                  },
+                  child: const Text(
+                    "Check Out",
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
         },
       ),
       body: SafeArea(
@@ -123,7 +234,8 @@ class _CartScreenState extends State<CartScreen> {
             List<Cart> cartItems = snapshot.data!;
 
             return Padding(
-              padding: const EdgeInsets.only(bottom: 230), // Khoảng cách cách bottom
+              padding:
+                  const EdgeInsets.only(bottom: 230), // Khoảng cách cách bottom
               child: ListView.builder(
                 itemCount: cartItems.length,
                 itemBuilder: (context, index) {
@@ -139,25 +251,6 @@ class _CartScreenState extends State<CartScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 20),
                       child: const Icon(Icons.delete, color: Colors.white),
                     ),
-                    confirmDismiss: (direction) async {
-                      return await showDialog<bool>(
-                        context: context,
-                        builder: (context) => AlertDialog(
-                          title: const Text("Xóa sản phẩm"),
-                          content: const Text("Bạn có chắc chắn muốn xóa sản phẩm này không?"),
-                          actions: [
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(false),
-                              child: const Text("Không"),
-                            ),
-                            TextButton(
-                              onPressed: () => Navigator.of(context).pop(true),
-                              child: const Text("Có"),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
                     onDismissed: (direction) {
                       _removeFromCart(cartItem.product.id!);
                     },
@@ -180,9 +273,13 @@ class _CartScreenState extends State<CartScreen> {
                                 borderRadius: BorderRadius.circular(15),
                                 color: kcontentColor,
                               ),
-                              child: product.thumbnail != null && product.thumbnail!.isNotEmpty
-                                  ? Image.memory(base64Decode(product.thumbnail!), fit: BoxFit.cover)
-                                  : const Icon(Icons.image, size: 50, color: Colors.grey),
+                              child: product.thumbnail != null &&
+                                      product.thumbnail!.isNotEmpty
+                                  ? Image.memory(
+                                      base64Decode(product.thumbnail!),
+                                      fit: BoxFit.cover)
+                                  : const Icon(Icons.image,
+                                      size: 50, color: Colors.grey),
                             ),
                             const SizedBox(width: 10),
                             Expanded(
@@ -190,7 +287,8 @@ class _CartScreenState extends State<CartScreen> {
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Expanded(
                                         child: Text(
@@ -203,7 +301,8 @@ class _CartScreenState extends State<CartScreen> {
                                         ),
                                       ),
                                       IconButton(
-                                        icon: const Icon(Icons.delete, color: Colors.red),
+                                        icon: const Icon(Icons.delete,
+                                            color: Colors.red),
                                         onPressed: () {
                                           _removeFromCart(product.id!);
                                         },
@@ -211,10 +310,12 @@ class _CartScreenState extends State<CartScreen> {
                                     ],
                                   ),
                                   Row(
-                                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
                                     children: [
                                       Text(
-                                        product.category?.categoryName ?? 'Unknown Category',
+                                        product.category?.categoryName ??
+                                            'Unknown Category',
                                         style: TextStyle(
                                             fontWeight: FontWeight.bold,
                                             fontSize: 14,
@@ -222,8 +323,10 @@ class _CartScreenState extends State<CartScreen> {
                                       ),
                                       Container(
                                         decoration: BoxDecoration(
-                                          border: Border.all(color: Colors.grey.shade400),
-                                          borderRadius: BorderRadius.circular(15),
+                                          border: Border.all(
+                                              color: Colors.grey.shade400),
+                                          borderRadius:
+                                              BorderRadius.circular(15),
                                         ),
                                         child: Row(
                                           mainAxisSize: MainAxisSize.min,
@@ -234,12 +337,16 @@ class _CartScreenState extends State<CartScreen> {
                                               icon: const Icon(Icons.remove),
                                               onPressed: () {
                                                 if (cartItem.qty! > 1) {
-                                                  _updateCart(cartItem.product.id!, cartItem.qty! - 1);
+                                                  _updateCart(
+                                                      cartItem.product.id!,
+                                                      cartItem.qty! - 1);
                                                 }
                                               },
                                             ),
                                             Padding(
-                                              padding: const EdgeInsets.symmetric(horizontal: 4),
+                                              padding:
+                                                  const EdgeInsets.symmetric(
+                                                      horizontal: 4),
                                               child: Text(
                                                 cartItem.qty.toString(),
                                                 style: const TextStyle(
@@ -253,7 +360,9 @@ class _CartScreenState extends State<CartScreen> {
                                               padding: EdgeInsets.zero,
                                               icon: const Icon(Icons.add),
                                               onPressed: () {
-                                                _updateCart(cartItem.product.id!, cartItem.qty! + 1);
+                                                _updateCart(
+                                                    cartItem.product.id!,
+                                                    cartItem.qty! + 1);
                                               },
                                             ),
                                           ],
@@ -264,7 +373,8 @@ class _CartScreenState extends State<CartScreen> {
                                   Text(
                                     "\$${product.price}",
                                     style: const TextStyle(
-                                        fontWeight: FontWeight.bold, fontSize: 14),
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 14),
                                   ),
                                 ],
                               ),

@@ -1,17 +1,53 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../CheckOut/Widget/CartItem.dart';
 import '../ThankYou/thank_you_screen.dart';
 import 'package:flutter_ecommerce/constants.dart';
+import '../../models/cart.dart';
+import '../../service/OrderService.dart';
+import '../../service/CartService.dart';
+import '../../service/ProductService.dart';
+import 'dart:convert';
 
 class CheckOutScreen extends StatefulWidget {
-  const CheckOutScreen({super.key});
+  final List<Cart> cartItems;
+  final double subtotal;
+  const CheckOutScreen(
+      {super.key, required this.cartItems, required this.subtotal});
 
   @override
   _CheckOutScreenState createState() => _CheckOutScreenState();
 }
 
 class _CheckOutScreenState extends State<CheckOutScreen> {
+  final OrderService _orderService = OrderService();
   DateTime? selectedDateTime;
+  String? fullName;
+  String? email;
+  String? telephone;
+  String? province;
+  String? district;
+  String? ward;
+  String? addressDetail;
+  String? shippingMethod;
+  String? paymentMethod;
+  String? note;
+
+  double tax = 0.0;
+  double shippingFee = 0.0;
+  double total = 0.0;
+
+  @override
+  void initState() {
+    super.initState();
+    _updateTotal(); // Khởi tạo total
+  }
+
+  void _updateTotal() {
+    tax = widget.subtotal * 0.1;
+    total = widget.subtotal + tax + shippingFee;
+    setState(() {});
+  }
 
   Future<void> _selectDateTime(BuildContext context) async {
     DateTime currentDateTime = DateTime.now();
@@ -43,6 +79,81 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
     }
   }
 
+  Future<void> _submitOrder() async {
+    final orderDetails = {
+      "full_name": fullName,
+      "email": email,
+      "telephone": telephone,
+      "province": province,
+      "district": district,
+      "ward": ward,
+      "address_detail": addressDetail,
+      "shipping_method": shippingMethod,
+      "payment_method": paymentMethod,
+      "note": note ?? "",
+      "schedule": selectedDateTime?.toIso8601String(),
+      "total": total,
+    };
+
+    final products = widget.cartItems.map((cartItem) {
+      return {
+        "product_id": cartItem.product.id,
+        "qty": cartItem.qty,
+      };
+    }).toList();
+
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('token') ?? '';
+
+    if (token.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Authentication token not found")),
+      );
+      return;
+    }
+
+    try {
+      final newOrder = await _orderService.createOrder(
+        token: token,
+        orderDetails: orderDetails,
+        products: products,
+      );
+      final productService = ProductService();
+      for (var cartItem in widget.cartItems) {
+        if (cartItem.product.id != null) {
+          await productService.updateProductQuantity(
+            token,
+            cartItem.product.id!,
+            cartItem.qty,
+          );
+        } else {
+          // Handle the case where product.id is null (e.g., show an error message)
+          print("Product ID is null for ${cartItem.product.productName}");
+        }
+      }
+
+      // Xóa toàn bộ giỏ hàng trên server
+      final cartService = CartService();
+      await cartService.clearCart(token);
+
+      // Xóa giỏ hàng trong ứng dụng
+      await prefs.remove('cartItems');
+      setState(() {
+        widget.cartItems.clear();
+      });
+
+      // Điều hướng tới màn hình Thank You
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const ThankYouScreen()),
+      );
+    } catch (error) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text("Failed to create order: $error")),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -50,31 +161,38 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
         title: const Text('Check Out'),
         backgroundColor: kprimaryColor,
         titleTextStyle: const TextStyle(
-          color: Colors.white, 
+          color: Colors.white,
           fontWeight: FontWeight.bold,
           fontSize: 24,
-        ), // Màu AppBar
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const TextFieldWithLabel(label: 'Full Name'),
+            TextFieldWithLabel(
+                label: 'Full Name', onChanged: (value) => fullName = value),
             const SizedBox(height: 10),
-            const TextFieldWithLabel(label: 'Email'),
+            TextFieldWithLabel(
+                label: 'Email', onChanged: (value) => email = value),
             const SizedBox(height: 10),
-            const TextFieldWithLabel(label: 'Telephone'),
+            TextFieldWithLabel(
+                label: 'Telephone', onChanged: (value) => telephone = value),
             const SizedBox(height: 10),
-            const TextFieldWithLabel(label: 'Province'),
+            TextFieldWithLabel(
+                label: 'Province', onChanged: (value) => province = value),
             const SizedBox(height: 10),
-            const TextFieldWithLabel(label: 'District'),
+            TextFieldWithLabel(
+                label: 'District', onChanged: (value) => district = value),
             const SizedBox(height: 10),
-            const TextFieldWithLabel(label: 'Ward'),
+            TextFieldWithLabel(
+                label: 'Ward', onChanged: (value) => ward = value),
             const SizedBox(height: 10),
-            const TextFieldWithLabel(label: 'Address Detail'),
+            TextFieldWithLabel(
+                label: 'Address Detail',
+                onChanged: (value) => addressDetail = value),
             const SizedBox(height: 20),
-
             const Text(
               'Shipping Method',
               style: TextStyle(
@@ -86,11 +204,18 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
             DropdownButtonFormField<String>(
               items: const [
                 DropdownMenuItem(
-                    value: 'standard', child: Text('Standard Shipping')),
-                DropdownMenuItem(
-                    value: 'express', child: Text('Express Shipping')),
+                    value: 'J&T Express', child: Text('J&T Express')),
+                DropdownMenuItem(value: 'Ninja Van', child: Text('Ninja Van')),
               ],
-              onChanged: (value) {},
+              onChanged: (value) {
+                setState(() {
+                  shippingMethod = value;
+                  shippingFee = value == 'J&T Express'
+                      ? 20.0
+                      : 15.0; // Phí vận chuyển ví dụ
+                  _updateTotal(); // Tính lại total
+                });
+              },
               decoration: InputDecoration(
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -103,7 +228,32 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
               hint: const Text('Select a shipping method'),
             ),
             const SizedBox(height: 20),
-
+            const Text(
+              'Payment Method',
+              style: TextStyle(
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+            const SizedBox(height: 10),
+            DropdownButtonFormField<String>(
+              items: const [
+                DropdownMenuItem(value: 'COD', child: Text('COD')),
+                DropdownMenuItem(value: 'PayPal', child: Text('PayPal')),
+              ],
+              onChanged: (value) => setState(() => paymentMethod = value),
+              decoration: InputDecoration(
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                contentPadding: const EdgeInsets.symmetric(
+                  vertical: 15,
+                  horizontal: 20,
+                ),
+              ),
+              hint: const Text('Select a payment method'),
+            ),
+            const SizedBox(height: 20),
             const Text(
               'Delivery Date & Time',
               style: TextStyle(
@@ -139,11 +289,13 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
               ),
             ),
             const SizedBox(height: 20),
-
-            const TextFieldWithLabel(label: 'Note (Optional)'),
+            TextFieldWithLabel(
+              label: 'Note (Optional)',
+              onChanged: (value) {
+                note = value.isEmpty ? null : value;
+              },
+            ),
             const SizedBox(height: 20),
-
-            // Section for Cart Items
             const Text(
               'Cart Items',
               style: TextStyle(
@@ -152,30 +304,16 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
               ),
             ),
             const SizedBox(height: 10),
-            CartItem(
-              imageUrl: 'images/all/sweet.png',
-              productName: 'Sapphire Splendor Pendant',
-              price: '\$853.0',
-              quantity: 1,
-            ),
-            CartItem(
-              imageUrl:
-                  'images/all/wireless.png', // Thay thế bằng hình ảnh của sản phẩm thứ hai
-              productName: 'Elegant Gold Bracelet',
-              price: '\$245.0',
-              quantity: 2,
-            ),
-            CartItem(
-              imageUrl:
-                  'images/all/miband.jpg', // Thay thế bằng hình ảnh của sản phẩm thứ ba
-              productName: 'Classic Diamond Ring',
-              price: '\$1,299.0',
-              quantity: 5,
-            ),
-
+            for (var cartItem in widget.cartItems)
+              CartItem(
+                imageUrl: cartItem.product.thumbnail != null
+                    ? base64Decode(cartItem.product.thumbnail!)
+                    : 'assets/default_image.png',
+                productName: cartItem.product.productName ?? 'No Name',
+                price: '\$${cartItem.product.price}',
+                quantity: cartItem.qty,
+              ),
             const SizedBox(height: 20),
-
-            // Section for Cart Total
             const Text(
               'Cart Total',
               style: TextStyle(
@@ -193,28 +331,23 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _cartTotalRow('Subtotal', '', '\$853.0'),
-                  _cartTotalRow('Tax(10%)', '', '\$85.30'),
-                  _cartTotalRow('Shipping Fee', '', '\$0.00'),
-                  _cartTotalRow('Total', '', '\$938.30', isTotal: true),
+                  _cartTotalRow(
+                      'Subtotal', '\$${widget.subtotal.toStringAsFixed(2)}'),
+                  _cartTotalRow('Tax (10%)', '\$${tax.toStringAsFixed(2)}'),
+                  _cartTotalRow(
+                      'Shipping Fee', '\$${shippingFee.toStringAsFixed(2)}'),
+                  _cartTotalRow('Total', '\$${total.toStringAsFixed(2)}',
+                      isTotal: true),
                 ],
               ),
             ),
             const SizedBox(height: 20),
-
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: kprimaryColor, // Màu của nút
+                backgroundColor: kprimaryColor,
                 minimumSize: const Size(double.infinity, 55),
               ),
-              onPressed: () {
-                // Chuyển đến ThankYouScreen
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ThankYouScreen()),
-                );
-              },
+              onPressed: _submitOrder,
               child: const Text(
                 'Confirm Order',
                 style: TextStyle(
@@ -223,42 +356,46 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
                   color: Colors.white,
                 ),
               ),
-            )
+            ),
           ],
         ),
       ),
     );
   }
 
-  Widget _cartTotalRow(String title, String? product, String amount,
-      {bool isTotal = false}) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Text(
-          title,
-          style: TextStyle(
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            fontSize: 16,
+  Widget _cartTotalRow(String label, String amount, {bool isTotal = false}) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 5),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(
+            label,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              fontSize: isTotal ? 16 : 14,
+            ),
           ),
-        ),
-        Text(
-          amount,
-          style: TextStyle(
-            fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
-            fontSize: 16,
+          Text(
+            amount,
+            style: TextStyle(
+              fontWeight: isTotal ? FontWeight.bold : FontWeight.normal,
+              fontSize: isTotal ? 16 : 14,
+              color: isTotal ? Colors.red : Colors.black,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }
 
-// Widget tái sử dụng cho các trường nhập liệu
 class TextFieldWithLabel extends StatelessWidget {
   final String label;
+  final ValueChanged<String> onChanged;
 
-  const TextFieldWithLabel({required this.label});
+  const TextFieldWithLabel(
+      {super.key, required this.label, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
@@ -272,7 +409,7 @@ class TextFieldWithLabel extends StatelessWidget {
             fontSize: 16,
           ),
         ),
-        const SizedBox(height: 5),
+        const SizedBox(height: 10),
         TextField(
           decoration: InputDecoration(
             border: OutlineInputBorder(
@@ -283,6 +420,7 @@ class TextFieldWithLabel extends StatelessWidget {
               horizontal: 20,
             ),
           ),
+          onChanged: onChanged,
         ),
       ],
     );
