@@ -1,7 +1,7 @@
-import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_ecommerce/constants.dart';
+import 'package:flutter_ecommerce/models/product.dart';
 import '../../../Provider/favorite_provider.dart';
+import '../../Cart/cart_screen.dart'; 
 
 class DetailAppBar extends StatelessWidget {
   final Product product;
@@ -30,8 +30,14 @@ class DetailAppBar extends StatelessWidget {
               backgroundColor: Colors.white,
               padding: const EdgeInsets.all(15),
             ),
-            onPressed: () {},
-            icon: const Icon(Icons.share_outlined),
+            onPressed: () {
+              // Điều hướng đến trang CartScreen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const CartScreen()),
+              );
+            },
+            icon: const Icon(Icons.shopping_cart), // Đổi thành icon cart
           ),
           const SizedBox(width: 10),
           IconButton(

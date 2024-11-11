@@ -94,4 +94,20 @@ class ProductService {
       throw Exception('Failed to update product quantity');
     }
   }
+  // Hàm tìm kiếm sản phẩm theo tên
+  Future<List<Product>> fetchProductsByName(String name) async {
+    final response = await http.get(Uri.parse('$baseUrl/search?name=$name'));
+
+    if (response.statusCode == 200) {
+      final body = jsonDecode(response.body);
+      if (body is Map<String, dynamic> && body.containsKey('data')) {
+        List<dynamic> content = body['data'];
+        return content.map((item) => Product.fromJson(item)).toList();
+      } else {
+        throw Exception('Invalid response format');
+      }
+    } else {
+      throw Exception('Failed to load products for name $name');
+    }
+  }
 }

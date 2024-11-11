@@ -1,11 +1,14 @@
-import 'package:flutter_ecommerce/constants.dart';
 import 'package:flutter/material.dart';
+import '../../../constants.dart';
+import '../SearchResultScreen.dart';
 
 class MySearchBAR extends StatelessWidget {
   const MySearchBAR({super.key});
 
   @override
   Widget build(BuildContext context) {
+    final TextEditingController searchController = TextEditingController();
+
     return Container(
       height: 55,
       width: double.infinity,
@@ -22,11 +25,24 @@ class MySearchBAR extends StatelessWidget {
             size: 30,
           ),
           const SizedBox(width: 10),
-          const Flexible(
+          Flexible(
             flex: 4,
             child: TextField(
-              decoration: InputDecoration(
-                  hintText: "Search...", border: InputBorder.none),
+              controller: searchController,
+              decoration: const InputDecoration(
+                hintText: "Search...",
+                border: InputBorder.none,
+              ),
+              onSubmitted: (value) {
+                if (value.isNotEmpty) {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => SearchResultScreen(searchQuery: value),
+                    ),
+                  );
+                }
+              },
             ),
           ),
           Container(
@@ -35,7 +51,16 @@ class MySearchBAR extends StatelessWidget {
             color: Colors.grey,
           ),
           IconButton(
-            onPressed: () {},
+            onPressed: () {
+              if (searchController.text.isNotEmpty) {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => SearchResultScreen(searchQuery: searchController.text),
+                  ),
+                );
+              }
+            },
             icon: const Icon(
               Icons.tune,
               color: Colors.grey,

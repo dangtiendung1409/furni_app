@@ -65,15 +65,17 @@ class AuthService {
     }
   }
 
-  Future<void> logout(BuildContext context) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.remove('token');
+Future<void> logout(BuildContext context) async {
+  final prefs = await SharedPreferences.getInstance();
+  await prefs.remove('token');
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => LoginScreen()),
-    );
-  }
+  // Xóa tất cả các route trước đó và chuyển đến LoginScreen
+  Navigator.of(context).pushAndRemoveUntil(
+    MaterialPageRoute(builder: (context) => LoginScreen()),
+    (Route<dynamic> route) => false, // Loại bỏ tất cả các route cũ
+  );
+}
+
 
   Future<void> changePassword(String oldPassword, String newPassword, String confirmNewPassword) async {
     final prefs = await SharedPreferences.getInstance();

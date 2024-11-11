@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
-import '../OrderStatusPage/order_details_page.dart';
 import '../../constants.dart';
+import 'order_details_page.dart';
 
 class OrderStatusPage extends StatelessWidget {
-  const OrderStatusPage({super.key});
+  final int tabIndex; // Nhận chỉ mục tab từ Profile
+
+  const OrderStatusPage({super.key, required this.tabIndex});
 
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
       length: 7, // Có 7 trạng thái đơn hàng
+      initialIndex: tabIndex, // Chỉ định tab bắt đầu
       child: Scaffold(
         appBar: AppBar(
           title: const Text('Order Status'),
@@ -59,7 +62,6 @@ class OrderList extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Danh sách đơn hàng mẫu dựa theo trạng thái
     final List<Map<String, String>> orders = _getOrdersByStatus(status);
 
     return ListView.builder(
@@ -76,7 +78,6 @@ class OrderList extends StatelessWidget {
             title: Text('Order ID: ${order["id"]}'),
             subtitle: Text('Status: $status'),
             onTap: () {
-              // Điều hướng đến trang chi tiết đơn hàng
               Navigator.push(
                 context,
                 MaterialPageRoute(
