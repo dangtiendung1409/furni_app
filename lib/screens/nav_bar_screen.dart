@@ -4,7 +4,7 @@ import 'package:flutter_ecommerce/screens/Cart/cart_screen.dart';
 import 'package:flutter_ecommerce/screens/Home/home_screen.dart';
 import 'package:flutter_ecommerce/screens/Profile/profile.dart';
 import 'package:flutter_ecommerce/screens/Notification/notification_screen.dart'; 
-import 'package:flutter_ecommerce/screens/Favorite/favorite.dart';
+import 'package:flutter_ecommerce/screens/Favorite/favorite_screen.dart';
 class BottomNavBar extends StatefulWidget {
   const BottomNavBar({super.key});
 
@@ -16,7 +16,7 @@ class BottomNavBarState extends State<BottomNavBar> {
   int cuttentIndex = 2;
   List<Widget> screens = const [
     NotificationScreen(), 
-    Favorite(),
+    FavoriteScreen(),
     HomeScreen(),
     CartScreen(),
     Profile(),

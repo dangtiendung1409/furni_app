@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../Favorite/favorite.dart';
+import '../Favorite/favorite_screen.dart';
 import '../Cart/cart_screen.dart';
 import '../../constants.dart';
 import '../nav_bar_screen.dart'; 

@@ -5,7 +5,7 @@ import 'package:flutter_ecommerce/screens/Detail/Widget/addto_cart.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/detail_app_bar.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/items_details.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/custom_tab_bar.dart';
-import 'package:flutter_ecommerce/screens/Detail/Widget/related_products.dart'; 
+import 'package:flutter_ecommerce/screens/Detail/Widget/related_products.dart';
 import '../../service/ProductService.dart';
 import 'dart:convert';
 
@@ -32,7 +32,6 @@ class _DetailScreenState extends State<DetailScreen>
   }
 
   Future<void> _fetchRelatedProducts() async {
-    // Lấy sản phẩm liên quan
     try {
       relatedProducts =
           await productService.fetchRelatedProducts(widget.product.id!);
@@ -46,7 +45,7 @@ class _DetailScreenState extends State<DetailScreen>
     setState(() {
       _selectedTabIndex = index;
     });
-    _tabController.index = index; // Cập nhật tab controller
+    _tabController.index = index;
   }
 
   @override
@@ -68,8 +67,6 @@ class _DetailScreenState extends State<DetailScreen>
             children: [
               DetailAppBar(product: widget.product),
               const SizedBox(height: 10),
-
-              // Hiển thị ảnh sản phẩm từ Base64
               if (widget.product.thumbnail != null)
                 Image.memory(
                   base64Decode(widget.product.thumbnail!),
@@ -79,7 +76,6 @@ class _DetailScreenState extends State<DetailScreen>
                 )
               else
                 const Center(child: Text("No Image Available")),
-
               Container(
                 width: double.infinity,
                 decoration: const BoxDecoration(
@@ -95,18 +91,13 @@ class _DetailScreenState extends State<DetailScreen>
                   children: [
                     ItemsDetails(product: widget.product),
                     const SizedBox(height: 20),
-
-                    // Sử dụng widget CustomTabBarView
                     CustomTabBarView(
                       tabController: _tabController,
                       selectedIndex: _selectedTabIndex,
                       onTabSelected: _onTabTapped,
-                      product: widget.product, // Truyền product vào
+                      product: widget.product,
                     ),
-
                     const SizedBox(height: 20),
-
-                    // Sử dụng widget RelatedProducts
                     RelatedProducts(relatedProducts: relatedProducts),
                   ],
                 ),

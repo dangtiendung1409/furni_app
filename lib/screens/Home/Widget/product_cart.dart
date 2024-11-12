@@ -98,11 +98,7 @@ class ProductCard extends StatelessWidget {
                     bottomLeft: Radius.circular(10),
                   ),
                 ),
-                child: Icon(
-                  Icons.favorite_border,
-                  color: Colors.white,
-                  size: 22,
-                ),
+                
               ),
             ),
           ),
