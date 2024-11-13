@@ -1,9 +1,11 @@
+import 'product.dart';
 class OrderProduct {
   final int orderId;
   final int productId;
   final double price;
   final int qty;
   final int status;
+  final Product product; 
 
   OrderProduct({
     required this.orderId,
@@ -11,9 +13,9 @@ class OrderProduct {
     required this.price,
     required this.qty,
     required this.status,
+    required this.product, 
   });
 
-  // Phương thức từ JSON sang đối tượng OrderProduct
   factory OrderProduct.fromJson(Map<String, dynamic> json) {
     return OrderProduct(
       orderId: json['order_id'] ?? 0,
@@ -21,10 +23,10 @@ class OrderProduct {
       price: (json['price'] as num).toDouble(),
       qty: json['qty'] ?? 0,
       status: json['status'] ?? 0,
+      product: Product.fromJson(json['product']), 
     );
   }
 
-  // Phương thức từ đối tượng OrderProduct sang JSON
   Map<String, dynamic> toJson() {
     return {
       'order_id': orderId,
@@ -32,6 +34,7 @@ class OrderProduct {
       'price': price,
       'qty': qty,
       'status': status,
+      'product': product.toJson(),
     };
   }
 }

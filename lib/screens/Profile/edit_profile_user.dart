@@ -41,9 +41,16 @@ class _EditProfileScreenState extends State<EditProfileUser> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Edit Profile'),
+        title: const Text(
+          'Edit Profile',
+          style: TextStyle(
+              color: Colors.white), // Đặt màu chữ của title thành trắng
+        ),
         backgroundColor: kprimaryColor,
         centerTitle: true,
+        iconTheme: IconThemeData(
+          color: Colors.white,
+        ),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -57,7 +64,8 @@ class _EditProfileScreenState extends State<EditProfileUser> {
                   radius: 60,
                   backgroundImage: _profileImage != null
                       ? FileImage(_profileImage!)
-                      : const AssetImage('images/profile_placeholder.png') as ImageProvider,
+                      : const AssetImage('images/profile_placeholder.png')
+                          as ImageProvider,
                   child: Align(
                     alignment: Alignment.bottomRight,
                     child: Icon(
@@ -114,7 +122,8 @@ class _EditProfileScreenState extends State<EditProfileUser> {
               ElevatedButton(
                 style: ElevatedButton.styleFrom(
                   backgroundColor: kprimaryColor,
-                  padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                  padding:
+                      const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 ),
                 onPressed: () {
                   // Xử lý logic lưu thông tin cập nhật và ảnh ở đây

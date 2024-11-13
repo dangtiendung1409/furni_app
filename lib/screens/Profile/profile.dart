@@ -20,6 +20,9 @@ class Profile extends StatelessWidget {
           fontWeight: FontWeight.bold,
           fontSize: 24,
         ),
+         iconTheme: IconThemeData(
+          color: Colors.white, 
+        ),
       ),
       body: SingleChildScrollView(
         child: Column(

@@ -21,6 +21,9 @@ class ThankYouScreen extends StatelessWidget {
           fontWeight: FontWeight.bold,
           fontSize: 24,
         ),
+         iconTheme: IconThemeData(
+          color: Colors.white, 
+        ),
       ),
       body: Center(
         child: Column(

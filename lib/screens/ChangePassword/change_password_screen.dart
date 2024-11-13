@@ -27,6 +27,9 @@ class _ChangePasswordScreenState extends State<ChangePasswordScreen> {
           style: TextStyle(color: Colors.white), // Đặt màu chữ là trắng
         ),
         backgroundColor: kprimaryColor,
+         iconTheme: IconThemeData(
+          color: Colors.white, 
+        ),
       ),
       body: Padding(
         padding: const EdgeInsets.all(20.0),

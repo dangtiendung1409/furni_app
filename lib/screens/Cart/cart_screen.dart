@@ -111,6 +111,9 @@ class _CartScreenState extends State<CartScreen> {
             fontSize: 25,
           ),
         ),
+         iconTheme: IconThemeData(
+          color: Colors.white, 
+        ),
       ),
       backgroundColor: kcontentColor,
       bottomSheet: FutureBuilder<List<Cart>>(

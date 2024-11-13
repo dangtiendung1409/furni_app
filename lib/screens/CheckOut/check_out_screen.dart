@@ -165,6 +165,9 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           fontWeight: FontWeight.bold,
           fontSize: 24,
         ),
+         iconTheme: IconThemeData(
+          color: Colors.white, 
+        ),
       ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(20.0),
