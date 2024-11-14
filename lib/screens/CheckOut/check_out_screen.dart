@@ -8,6 +8,7 @@ import '../../service/OrderService.dart';
 import '../../service/CartService.dart';
 import '../../service/ProductService.dart';
 import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CheckOutScreen extends StatefulWidget {
   final List<Cart> cartItems;
@@ -37,16 +38,107 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
   double shippingFee = 0.0;
   double total = 0.0;
 
+  List<Map<String, String>> provinces = [];
+  List<Map<String, String>> districts = [];
+  List<Map<String, String>> wards = [];
+
+  String? selectedProvinceId;
+  String? selectedDistrictId;
+  String? selectedWardId;
+
   @override
   void initState() {
     super.initState();
-    _updateTotal(); // Khởi tạo total
+    _updateTotal();
+    _fetchProvinces();
   }
 
   void _updateTotal() {
     tax = widget.subtotal * 0.1;
     total = widget.subtotal + tax + shippingFee;
     setState(() {});
+  }
+
+  Future<void> _fetchProvinces() async {
+    try {
+      final response =
+          await http.get(Uri.parse('https://esgoo.net/api-tinhthanh/1/0.htm'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['error'] == 0) {
+          setState(() {
+            provinces = (data['data'] as List)
+                .map((e) => {
+                      'id': e['id'].toString(),
+                      'name': e['full_name'].toString()
+                    })
+                .toList();
+          });
+        } else {
+          print("API trả về lỗi: ${data['error_text']}");
+        }
+      } else {
+        print("Lỗi khi tải tỉnh thành: ${response.statusCode}");
+      }
+    } catch (e) {
+      print('Lỗi khi lấy dữ liệu tỉnh: $e');
+    }
+  }
+
+  Future<void> _fetchDistricts(String provinceId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://esgoo.net/api-tinhthanh/2/$provinceId.htm'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['error'] == 0) {
+          setState(() {
+            districts = (data['data'] as List)
+                .map((e) => {
+                      'id': e['id'].toString(),
+                      'name': e['full_name'].toString()
+                    })
+                .toList();
+            // Reset district and ward when province is changed
+            selectedDistrictId = null;
+            selectedWardId = null;
+          });
+        } else {
+          print("API trả về lỗi: ${data['error_text']}");
+        }
+      } else {
+        print("Lỗi khi tải huyện: ${response.statusCode}");
+      }
+    } catch (e) {
+      print('Lỗi khi lấy dữ liệu huyện: $e');
+    }
+  }
+
+  Future<void> _fetchWards(String districtId) async {
+    try {
+      final response = await http
+          .get(Uri.parse('https://esgoo.net/api-tinhthanh/3/$districtId.htm'));
+      if (response.statusCode == 200) {
+        final data = json.decode(response.body);
+        if (data['error'] == 0) {
+          setState(() {
+            wards = (data['data'] as List)
+                .map((e) => {
+                      'id': e['id'].toString(),
+                      'name': e['full_name'].toString()
+                    })
+                .toList();
+            selectedWardId = null; // Reset ward when district is changed
+          });
+        } else {
+          print("API trả về lỗi: ${data['error_text']}");
+        }
+      } else {
+        print("Lỗi khi tải phường xã: ${response.statusCode}");
+      }
+    } catch (e) {
+      print('Lỗi khi lấy dữ liệu phường xã: $e');
+    }
   }
 
   Future<void> _selectDateTime(BuildContext context) async {
@@ -165,8 +257,8 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
           fontWeight: FontWeight.bold,
           fontSize: 24,
         ),
-         iconTheme: IconThemeData(
-          color: Colors.white, 
+        iconTheme: IconThemeData(
+          color: Colors.white,
         ),
       ),
       body: SingleChildScrollView(
@@ -183,14 +275,121 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
             TextFieldWithLabel(
                 label: 'Telephone', onChanged: (value) => telephone = value),
             const SizedBox(height: 10),
-            TextFieldWithLabel(
-                label: 'Province', onChanged: (value) => province = value),
+            // Dropdown for Province
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Province', // Label cho Province
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    border: OutlineInputBorder(),
+                  ),
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedProvinceId,
+                    items: provinces
+                        .map((province) => DropdownMenuItem(
+                              value: province['id'],
+                              child: Text(province['name']!),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedProvinceId = value;
+                        province = provinces
+                            .firstWhere((p) => p['id'] == value)['name'];
+                        if (selectedProvinceId != null) {
+                          _fetchDistricts(selectedProvinceId!);
+                        }
+                      });
+                    },
+                    hint: const Text('Select Province'), // Text mặc định nếu chưa chọn
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
-            TextFieldWithLabel(
-                label: 'District', onChanged: (value) => district = value),
+            // Dropdown for District
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'District', // Label cho District
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    border: OutlineInputBorder(),
+                  ),
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedDistrictId,
+                    items: districts
+                        .map((district) => DropdownMenuItem(
+                              value: district['id'],
+                              child: Text(district['name']!),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedDistrictId = value;
+                        district = districts
+                            .firstWhere((d) => d['id'] == value)['name'];
+                        if (selectedDistrictId != null) {
+                          _fetchWards(selectedDistrictId!);
+                        }
+                      });
+                    },
+                    hint: const Text('Select District'),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
-            TextFieldWithLabel(
-                label: 'Ward', onChanged: (value) => ward = value),
+            // Dropdown for Ward
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Ward', // Label cho Ward
+                  style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+                const SizedBox(height: 8),
+                InputDecorator(
+                  decoration: InputDecoration(
+                    contentPadding:
+                        const EdgeInsets.symmetric(vertical: 10, horizontal: 20),
+                    border: OutlineInputBorder(),
+                  ),
+                  child: DropdownButton<String>(
+                    isExpanded: true,
+                    value: selectedWardId,
+                    items: wards
+                        .map((ward) => DropdownMenuItem(
+                              value: ward['id'],
+                              child: Text(ward['name']!),
+                            ))
+                        .toList(),
+                    onChanged: (value) {
+                      setState(() {
+                        selectedWardId = value;
+                        ward = wards.firstWhere((w) => w['id'] == value)['name'];
+                      });
+                    },
+                    hint: const Text('Select Ward'),
+                  ),
+                ),
+              ],
+            ),
             const SizedBox(height: 10),
             TextFieldWithLabel(
                 label: 'Address Detail',
