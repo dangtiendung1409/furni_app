@@ -4,6 +4,8 @@ import '../../constants.dart';
 import '../../models/order.dart';
 import '../../models/orderProduct.dart';
 import '../../service/OrderService.dart';
+import 'cancel_order_reason_page.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -54,7 +56,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           fontSize: 24,
         ),
         iconTheme: IconThemeData(
-          color: Colors.white, 
+          color: Colors.white,
         ),
       ),
       body: FutureBuilder<Order?>(
@@ -98,6 +100,31 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                   ),
                   const SizedBox(height: 10),
                   _buildOrderInfoSection(order),
+                  const SizedBox(height: 20), // Space before the button
+                  // Hiển thị nút huỷ nếu đơn hàng có trạng thái "Pending"
+                  if (order.status == 'pending')
+                    ElevatedButton(
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red, // Màu nền đỏ
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                      ),
+                      onPressed: () {
+                        // Điều hướng đến trang lý do hủy đơn hàng
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) =>
+                                CancelOrderReasonPage(orderId: widget.orderId),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Cancel Order',
+                        style: TextStyle(color: Colors.white), // Màu chữ trắng
+                      ),
+                    ),
                 ],
               ),
             );
@@ -109,18 +136,33 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   // Shipping Status Section
   Widget _buildShippingStatus(Order order) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'Shipping information',
-          style: TextStyle(fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 5),
-        Text(order.shippingMethod ?? 'Chưa có thông tin vận chuyển'),
-        Text(order.orderDate?.toString() ?? 'Chưa có ngày giao hàng',
-            style: TextStyle(color: Colors.green)),
-      ],
+    return Container(
+      padding: const EdgeInsets.all(15),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        border: Border.all(color: Colors.grey[300]!),
+        borderRadius: BorderRadius.circular(10),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Shipping information',
+            style: Theme.of(context)
+                .textTheme
+                .titleMedium
+                ?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 5),
+          Text(order.shippingMethod ?? 'Chưa có thông tin vận chuyển'),
+          Text(
+            order.orderDate != null
+                ? 'Date of receipt: ${DateFormat('dd/MM/yyyy').format(order.orderDate!)}'
+                : 'Chưa có ngày giao hàng',
+            style: TextStyle(color: Colors.green),
+          ),
+        ],
+      ),
     );
   }
 
@@ -137,20 +179,24 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(
-            'Delivery address', // Tiêu đề tiếng Anh
+            'Delivery address',
             style: Theme.of(context)
                 .textTheme
                 .titleMedium
                 ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 10),
-          Text(order.fullName ?? 'No recipient information available'),
-          Text(order.telephone ?? 'No phone number available'),
           Text(
-            [order.addressDetail, order.ward, order.district, order.province]
-                    .where((element) => element != null && element.isNotEmpty)
-                    .join(', ') ??
-                'No address available',
+              'Full Name: ${order.fullName ?? 'No recipient information available'}'),
+          Text(
+              'Phone Number: ${order.telephone ?? 'No phone number available'}'),
+          Text(
+            'Address: ${[
+                  order.addressDetail,
+                  order.ward,
+                  order.district,
+                  order.province
+                ].where((element) => element != null && element.isNotEmpty).join(', ') ?? 'No address available'}',
           ),
         ],
       ),
@@ -182,11 +228,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
             return Column(
               children: [
                 ListTile(
-                  leading: Image.memory(base64Decode(product
-                          .product.thumbnail ??
-                      'https://via.placeholder.com/50')), // Sửa lại thuộc tính `thumbnail`
-                  title: Text(product.product.productName ??
-                      'Sản phẩm không tên'), // Sửa lại thuộc tính `productName`
+                  leading: Image.memory(base64Decode(
+                      product.product.thumbnail ??
+                          'https://via.placeholder.com/50')),
+                  title:
+                      Text(product.product.productName ?? 'Sản phẩm không tên'),
                   subtitle: Text('Quanty: ${product.qty ?? 0}'),
                   trailing: Text('Price: \$${product.price}'),
                 ),

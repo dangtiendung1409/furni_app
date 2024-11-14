@@ -27,8 +27,8 @@ class OrderStatusPage extends StatelessWidget {
             fontSize: 24,
           ),
           iconTheme: IconThemeData(
-          color: Colors.white, 
-        ),
+            color: Colors.white,
+          ),
           elevation: 0,
           bottom: TabBar(
             isScrollable: true,
@@ -72,7 +72,6 @@ class OrderList extends StatefulWidget {
 }
 
 class _OrderListState extends State<OrderList> {
-  // Khởi tạo _ordersFuture với giá trị null.
   Future<List<Order>>? _ordersFuture;
   late String _token;
 
@@ -82,13 +81,11 @@ class _OrderListState extends State<OrderList> {
     _loadTokenAndFetchOrders();
   }
 
-  // Hàm tải token từ SharedPreferences và gọi API lấy đơn hàng
   Future<void> _loadTokenAndFetchOrders() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('token') ?? '';  // Lấy token đã lưu trong SharedPreferences
+    _token = prefs.getString('token') ?? '';
     if (_token.isNotEmpty) {
       setState(() {
-        // Gọi API và gán giá trị cho _ordersFuture
         _ordersFuture = OrderService().fetchOrders(_token, widget.status);
       });
     } else {
@@ -96,10 +93,29 @@ class _OrderListState extends State<OrderList> {
     }
   }
 
+  Future<void> _updateOrderStatus(Order order) async {
+    try {
+      await OrderService().updateOrderStatus(
+        token: _token,
+        orderId: order.id,
+        newStatus: 'complete',
+      );
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Order status updated to Complete')),
+      );
+      // Cập nhật lại danh sách đơn hàng
+      _loadTokenAndFetchOrders();
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update status: $e')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return FutureBuilder<List<Order>>(
-      future: _ordersFuture, // Sử dụng _ordersFuture đã được gán giá trị
+      future: _ordersFuture,
       builder: (context, snapshot) {
         if (snapshot.connectionState == ConnectionState.waiting) {
           return const Center(child: CircularProgressIndicator());
@@ -122,13 +138,24 @@ class _OrderListState extends State<OrderList> {
                     color: _getStatusColor(widget.status),
                   ),
                   title: Text('Order code:#${order.orderCode}'),
-                  subtitle: Text('Total Amount: \$${order.totalAmount.toStringAsFixed(2)}'),
+                  subtitle: Text(
+                      'Total Amount: \$${order.totalAmount.toStringAsFixed(2)}'),
+                  trailing: widget.status == 'Shipped'
+                      ? ElevatedButton(
+                          onPressed: () => _updateOrderStatus(order),
+                          child: const Text('Complete'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: kprimaryColor,
+                            foregroundColor: Colors.white,
+                          ),
+                        )
+                      : null,
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => OrderDetailPage(
-                            orderId: order.id.toString()), // Chuyển đổi id sang String
+                        builder: (context) =>
+                            OrderDetailPage(orderId: order.id.toString()),
                       ),
                     );
                   },
