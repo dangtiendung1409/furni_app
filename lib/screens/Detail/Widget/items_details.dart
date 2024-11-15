@@ -2,10 +2,18 @@ import 'package:flutter_ecommerce/constants.dart';
 import 'package:flutter_ecommerce/models/product.dart';
 import 'package:flutter_ecommerce/models/category.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_rating_bar/flutter_rating_bar.dart';
 
 class ItemsDetails extends StatelessWidget {
   final Product product;
-  const ItemsDetails({super.key, required this.product});
+  final double averageRating; // Số sao trung bình
+  final int totalReviews;
+  const ItemsDetails({
+    super.key,
+    required this.product,
+    required this.averageRating,
+    required this.totalReviews,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -57,38 +65,20 @@ class ItemsDetails extends StatelessWidget {
         // Hiển thị số sao và số lượng review với dữ liệu cứng
         Row(
           children: [
-            Container(
-              width: 55,
-              height: 25,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(15),
-                color: kprimaryColor,
+            RatingBarIndicator(
+              rating: averageRating, // Số sao trung bình
+              itemBuilder: (context, index) => const Icon(
+                Icons.star,
+                color: Colors.amber,
               ),
-              alignment: Alignment.center,
-              padding: const EdgeInsets.symmetric(horizontal: 5),
-              child: Row(
-                children: [
-                  const Icon(
-                    Icons.star,
-                    size: 15,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 3),
-                  const Text(
-                    "4.5", // Số sao cố định
-                    style: TextStyle(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.white,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
+              itemCount: 5, // Tổng số sao
+              itemSize: 20.0, // Kích thước mỗi sao
+              direction: Axis.horizontal,
             ),
             const SizedBox(width: 10),
-            const Text(
-              "(320 Reviews)", // Số lượng review cố định
-              style: TextStyle(
+            Text(
+              "($totalReviews Reviews)", // Tổng số review
+              style: const TextStyle(
                 color: Colors.grey,
                 fontSize: 16,
               ),

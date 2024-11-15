@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../OrderStatusPage/order_status_page.dart';
 import '../ChangePassword/change_password_screen.dart';
 import '../Profile/profile_user_screen.dart';
+import '../Profile/product_review_page.dart'; // Import trang review sản phẩm
 import '../../constants.dart';
 import '../../service/AuthService.dart';
 
@@ -20,7 +21,7 @@ class Profile extends StatelessWidget {
           fontWeight: FontWeight.bold,
           fontSize: 24,
         ),
-         iconTheme: IconThemeData(
+        iconTheme: IconThemeData(
           color: Colors.white, 
         ),
       ),
@@ -60,7 +61,7 @@ class Profile extends StatelessWidget {
               ),
             ),
             // Thay phần quảng cáo bằng các icon trạng thái đơn hàng
-             Padding(
+            Padding(
               padding: const EdgeInsets.symmetric(horizontal: 16),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -68,7 +69,7 @@ class Profile extends StatelessWidget {
                   _buildStatusIcon(Icons.hourglass_empty, "Pending", context, 0),
                   _buildStatusIcon(Icons.check_circle, "Confirmed", context, 1),
                   _buildStatusIcon(Icons.local_shipping, "In Delivery", context, 2),
-                  _buildStatusIcon(Icons.rate_review, "Reviewed", context, 3),
+                  _buildStatusIcon(Icons.rate_review, "Reviewed", context, 3, navigateToReview: true), // Thêm đối số navigateToReview
                 ],
               ),
             ),
@@ -98,23 +99,6 @@ class Profile extends StatelessWidget {
                   MaterialPageRoute(
                       builder: (context) => const ChangePasswordScreen()),
                 );
-              },
-            ),
-
-            _buildProfileOption(
-              context,
-              icon: Icons.mic,
-              title: 'Audio & Video',
-              onTap: () {
-                // Chức năng âm thanh và video
-              },
-            ),
-            _buildProfileOption(
-              context,
-              icon: Icons.play_circle,
-              title: 'Playback',
-              onTap: () {
-                // Chức năng phát lại
               },
             ),
             _buildProfileOption(
@@ -155,7 +139,6 @@ class Profile extends StatelessWidget {
                 },
               ),
             ),
-
             // Đặt nút Log Out cuối cùng mà không dùng Spacer
             Align(
               alignment: Alignment.bottomCenter,
@@ -225,19 +208,28 @@ class Profile extends StatelessWidget {
       onTap: onTap,
     );
   }
-}
 
-// Hàm hỗ trợ tạo icon với trạng thái
-Widget _buildStatusIcon(IconData icon, String title, BuildContext context, int tabIndex) {
+  // Hàm hỗ trợ tạo icon với trạng thái, thêm đối số navigateToReview
+  Widget _buildStatusIcon(IconData icon, String title, BuildContext context, int tabIndex, {bool navigateToReview = false}) {
     return GestureDetector(
       onTap: () {
-        // Điều hướng đến OrderStatusPage và chuyển đến tab tương ứng
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OrderStatusPage(tabIndex: tabIndex),
-          ),
-        );
+        if (navigateToReview) {
+          // Điều hướng đến trang review sản phẩm khi nhấn vào icon review
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ProductReviewPage(),
+            ),
+          );
+        } else {
+          // Điều hướng đến OrderStatusPage và chuyển đến tab tương ứng
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OrderStatusPage(tabIndex: tabIndex),
+            ),
+          );
+        }
       },
       child: Column(
         children: [
@@ -251,3 +243,4 @@ Widget _buildStatusIcon(IconData icon, String title, BuildContext context, int t
       ),
     );
   }
+}

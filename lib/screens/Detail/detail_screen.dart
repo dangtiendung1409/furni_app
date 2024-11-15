@@ -6,7 +6,10 @@ import 'package:flutter_ecommerce/screens/Detail/Widget/detail_app_bar.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/items_details.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/custom_tab_bar.dart';
 import 'package:flutter_ecommerce/screens/Detail/Widget/related_products.dart';
+import '../../service/ReviewService.dart';
 import '../../service/ProductService.dart';
+import '../../models/review.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class DetailScreen extends StatefulWidget {
@@ -20,14 +23,19 @@ class DetailScreen extends StatefulWidget {
 class _DetailScreenState extends State<DetailScreen>
     with SingleTickerProviderStateMixin {
   late List<Product> relatedProducts = [];
+  late List<Review> reviews = [];
   late TabController _tabController;
   int _selectedTabIndex = 0;
+  double averageRating = 0.0; 
+  int totalReviews = 0;
   final ProductService productService = ProductService();
+  final ReviewService reviewService = ReviewService();
 
   @override
   void initState() {
     super.initState();
     _fetchRelatedProducts();
+    _fetchReviews();
     _tabController = TabController(length: 3, vsync: this);
   }
 
@@ -40,7 +48,36 @@ class _DetailScreenState extends State<DetailScreen>
       print(e);
     }
   }
+Future<void> _fetchReviews() async {
+    try {
+      // Lấy token từ SharedPreferences
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String? token = prefs.getString('token');
 
+      if (token != null) {
+        // Gọi API để lấy danh sách review
+        reviews = await reviewService.fetchReviewsByProductId(token, widget.product.id!);
+
+        // Tính tổng số lượng review
+        totalReviews = reviews.length;
+
+        // Tính số sao trung bình
+        if (totalReviews > 0) {
+          double totalRating = reviews.fold(
+              0.0, (sum, review) => sum + (review.ratingValue ?? 0));
+          averageRating = totalRating / totalReviews;
+        } else {
+          averageRating = 0.0; // Không có review
+        }
+
+        setState(() {}); // Cập nhật giao diện sau khi tính toán
+      } else {
+        print("No token found");
+      }
+    } catch (e) {
+      print("Error fetching reviews: $e");
+    }
+  }
   void _onTabTapped(int index) {
     setState(() {
       _selectedTabIndex = index;
@@ -89,13 +126,18 @@ class _DetailScreenState extends State<DetailScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    ItemsDetails(product: widget.product),
+                    ItemsDetails(
+                      product: widget.product,
+                      averageRating: averageRating,
+                      totalReviews: totalReviews,
+                    ),
                     const SizedBox(height: 20),
                     CustomTabBarView(
                       tabController: _tabController,
                       selectedIndex: _selectedTabIndex,
                       onTabSelected: _onTabTapped,
                       product: widget.product,
+                      reviews: reviews,
                     ),
                     const SizedBox(height: 20),
                     RelatedProducts(relatedProducts: relatedProducts),
