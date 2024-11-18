@@ -1,11 +1,69 @@
 import 'package:flutter/material.dart';
-import '../Favorite/favorite_screen.dart';
-import '../Cart/cart_screen.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../models/notification.dart' as model;
+import '../../service/NotificationService.dart';
 import '../../constants.dart';
-import '../nav_bar_screen.dart'; 
+import '../nav_bar_screen.dart';
 
-class NotificationScreen extends StatelessWidget {
+class NotificationScreen extends StatefulWidget {
   const NotificationScreen({super.key});
+
+  @override
+  _NotificationScreenState createState() => _NotificationScreenState();
+}
+
+class _NotificationScreenState extends State<NotificationScreen> {
+  final NotificationService _notificationService = NotificationService();
+  List<model.Notification> _notifications = [];
+  bool _isLoading = true;
+  String? _errorMessage;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchNotifications();
+  }
+
+  Future<void> _fetchNotifications() async {
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    String? token = prefs.getString('token');
+
+    if (token == null) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = 'Token not found. Please log in again.';
+      });
+      return;
+    }
+
+    try {
+      final notifications = await _notificationService.fetchNotifications(token);
+      setState(() {
+        _notifications = notifications;
+        _isLoading = false;
+      });
+    } catch (e) {
+      setState(() {
+        _isLoading = false;
+        _errorMessage = e.toString();
+      });
+    }
+  }
+
+  String _formatTimestamp(DateTime createdAt) {
+    final now = DateTime.now();
+    final difference = now.difference(createdAt);
+
+    if (difference.inSeconds < 60) {
+      return '${difference.inSeconds} seconds ago';
+    } else if (difference.inMinutes < 60) {
+      return '${difference.inMinutes} minutes ago';
+    } else if (difference.inHours < 24) {
+      return '${difference.inHours} hours ago';
+    } else {
+      return '${difference.inDays} days ago';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -14,56 +72,48 @@ class NotificationScreen extends StatelessWidget {
         title: const Text(
           'Notification',
           style: TextStyle(
-           fontWeight: FontWeight.bold,
+            fontWeight: FontWeight.bold,
             fontSize: 25,
-            color: Colors.white, 
+            color: Colors.white,
           ),
         ),
         backgroundColor: kprimaryColor,
         actions: [
           IconButton(
-            icon: const Icon(
-              Icons.favorite_border,
-              color: Colors.white, 
-            ),
+            icon: const Icon(Icons.favorite_border, color: Colors.white),
             onPressed: () {
-              // Thay đổi currentIndex để chuyển sang màn hình Favorite
               BottomNavBarState? bottomNavBarState = context.findAncestorStateOfType<BottomNavBarState>();
               bottomNavBarState?.setState(() {
-                bottomNavBarState.cuttentIndex = 1; // Chỉ số của màn hình Favorite
+                bottomNavBarState.cuttentIndex = 1;
               });
             },
           ),
           IconButton(
-            icon: const Icon(
-              Icons.shopping_cart_outlined,
-              color: Colors.white, 
-            ),
+            icon: const Icon(Icons.shopping_cart_outlined, color: Colors.white),
             onPressed: () {
-              // Thay đổi currentIndex để chuyển sang màn hình Cart
               BottomNavBarState? bottomNavBarState = context.findAncestorStateOfType<BottomNavBarState>();
               bottomNavBarState?.setState(() {
-                bottomNavBarState.cuttentIndex = 3; // Chỉ số của màn hình CartScreen
+                bottomNavBarState.cuttentIndex = 3;
               });
             },
           ),
         ],
       ),
-      body: ListView(
-        children: const [
-          NotificationItem(
-            title: 'Đơn hàng của bạn đã được giao',
-            subtitle: 'Hãy kiểm tra đơn hàng của bạn.',
-            timestamp: '12 phút trước',
-          ),
-          NotificationItem(
-            title: 'Giảm giá đặc biệt',
-            subtitle: 'Nhận ngay 20% giảm giá cho đơn hàng tiếp theo của bạn!',
-            timestamp: '1 giờ trước',
-          ),
-          // Thêm các thông báo khác ở đây
-        ],
-      ),
+      body: _isLoading
+          ? Center(child: CircularProgressIndicator())
+          : _errorMessage != null
+              ? Center(child: Text(_errorMessage!))
+              : ListView.builder(
+                  itemCount: _notifications.length,
+                  itemBuilder: (context, index) {
+                    final notification = _notifications[index];
+                    return NotificationItem(
+                      title: notification.title,
+                      subtitle: notification.message,
+                      timestamp: _formatTimestamp(notification.created_at), 
+                    );
+                  },
+                ),
     );
   }
 }
@@ -86,9 +136,7 @@ class NotificationItem extends StatelessWidget {
       contentPadding: const EdgeInsets.all(16.0),
       title: Text(
         title,
-        style: const TextStyle(
-          fontWeight: FontWeight.bold,
-        ),
+        style: const TextStyle(fontWeight: FontWeight.bold),
       ),
       subtitle: Text(subtitle),
       trailing: Text(

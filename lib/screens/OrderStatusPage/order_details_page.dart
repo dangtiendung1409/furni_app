@@ -6,6 +6,7 @@ import '../../models/orderProduct.dart';
 import '../../service/OrderService.dart';
 import 'cancel_order_reason_page.dart';
 import 'package:intl/intl.dart';
+import '../OrderStatusPage/return_order_page.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class OrderDetailPage extends StatefulWidget {
@@ -94,7 +95,8 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                             'Không có sản phẩm cho đơn hàng này.');
                       } else {
                         final products = productSnapshot.data!;
-                        return _buildProductInfoSection(context, products);
+                        return _buildProductInfoSection(
+                            context, products, snapshot.data!.status, order.id);
                       }
                     },
                   ),
@@ -205,7 +207,11 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
 
   // Product Information Section
   Widget _buildProductInfoSection(
-      BuildContext context, List<OrderProduct> products) {
+    BuildContext context,
+    List<OrderProduct> products,
+    String orderStatus,
+    int orderId,
+  ) {
     return Container(
       padding: const EdgeInsets.all(15),
       decoration: BoxDecoration(
@@ -225,6 +231,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           ),
           const SizedBox(height: 10),
           ...products.map((product) {
+            double refundAmount = ((product.qty ?? 0) * (product.price ?? 0)) * 0.9;
             return Column(
               children: [
                 ListTile(
@@ -233,8 +240,31 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                           'https://via.placeholder.com/50')),
                   title:
                       Text(product.product.productName ?? 'Sản phẩm không tên'),
-                  subtitle: Text('Quanty: ${product.qty ?? 0}'),
-                  trailing: Text('Price: \$${product.price}'),
+                  subtitle: Text('Quantity: ${product.qty ?? 0}'),
+                  trailing: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text('Price: \$${product.price}'),
+                      // Hiển thị nút replay nếu trạng thái đơn hàng không phải là '1'
+                      if (orderStatus != '1')
+                        IconButton(
+                          icon: Icon(Icons.replay, color: Colors.blue),
+                          onPressed: () {
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) => ReturnOrderPage(
+                                  orderId: orderId,
+                                  productId: product.productId,
+                                  refundAmount: refundAmount,
+                                  qty: product.qty ?? 0,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                    ],
+                  ),
                 ),
                 const Divider(),
               ],
@@ -242,6 +272,34 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
           }).toList(),
         ],
       ),
+    );
+  }
+
+  void _showReturnDialog(BuildContext context, OrderProduct product) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text('Return Product'),
+          content: Text(
+              'Are you sure you want to return the product: ${product.product.productName}?'),
+          actions: <Widget>[
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: Text('Cancel'),
+            ),
+            TextButton(
+              onPressed: () {
+                // Xử lý logic trả lại sản phẩm tại đây
+                Navigator.of(context).pop();
+              },
+              child: Text('Return'),
+            ),
+          ],
+        );
+      },
     );
   }
 

@@ -1,7 +1,10 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import '../../constants.dart';
+import '../../service/AuthService.dart';
+import '../Profile/profile.dart';
 
 class EditProfileUser extends StatefulWidget {
   const EditProfileUser({super.key});
@@ -16,8 +19,8 @@ class _EditProfileScreenState extends State<EditProfileUser> {
   final TextEditingController _phoneController = TextEditingController();
   final TextEditingController _addressController = TextEditingController();
 
-  File? _profileImage; // Biến để lưu ảnh đại diện đã chọn
-  final ImagePicker _picker = ImagePicker(); // Công cụ chọn ảnh
+  File? _profileImage; // Variable to store the selected image
+  final ImagePicker _picker = ImagePicker(); // Image picker tool
 
   @override
   void dispose() {
@@ -28,12 +31,56 @@ class _EditProfileScreenState extends State<EditProfileUser> {
     super.dispose();
   }
 
+  // Function to pick an image from gallery
   Future<void> _pickImage() async {
+    // Check if the widget is still mounted before updating state
+    if (!mounted) return;
+
     final pickedFile = await _picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
+
+    if (pickedFile != null && mounted) {
       setState(() {
         _profileImage = File(pickedFile.path);
       });
+    }
+  }
+
+  Future<void> _saveProfile() async {
+    try {
+      String? base64Image;
+      if (_profileImage != null) {
+        final imageBytes = await _profileImage!.readAsBytes();
+        base64Image = base64Encode(imageBytes);
+      }
+
+      final updatedData = {
+        'full_name': _nameController.text.isEmpty ? null : _nameController.text,
+        'email': _emailController.text.isEmpty ? null : _emailController.text,
+        'phone_number':
+            _phoneController.text.isEmpty ? null : _phoneController.text,
+        'address':
+            _addressController.text.isEmpty ? null : _addressController.text,
+        'thumbnail': base64Image,
+      };
+
+      updatedData.removeWhere((key, value) => value == null);
+
+      await AuthService().updateProfile(updatedData);
+
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Profile updated successfully')),
+      );
+
+      // Quay lại màn hình Profile và làm mới
+      Navigator.pushAndRemoveUntil(
+        context,
+        MaterialPageRoute(builder: (context) => const Profile()),
+        (route) => false, // Xóa toàn bộ stack màn hình
+      );
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Failed to update profile: $e')),
+      );
     }
   }
 
@@ -43,14 +90,11 @@ class _EditProfileScreenState extends State<EditProfileUser> {
       appBar: AppBar(
         title: const Text(
           'Edit Profile',
-          style: TextStyle(
-              color: Colors.white), // Đặt màu chữ của title thành trắng
+          style: TextStyle(color: Colors.white), // Title text color
         ),
         backgroundColor: kprimaryColor,
         centerTitle: true,
-        iconTheme: IconThemeData(
-          color: Colors.white,
-        ),
+        iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -59,14 +103,15 @@ class _EditProfileScreenState extends State<EditProfileUser> {
             children: [
               // Profile Image
               GestureDetector(
-                onTap: _pickImage, // Mở thư viện ảnh khi người dùng nhấn vào
+                onTap: _pickImage, // Open image picker on tap
                 child: CircleAvatar(
                   radius: 60,
                   backgroundImage: _profileImage != null
-                      ? FileImage(_profileImage!)
-                      : const AssetImage('images/profile_placeholder.png')
-                          as ImageProvider,
-                  child: Align(
+                      ? FileImage(
+                          _profileImage!) // Hiển thị ảnh người dùng chọn
+                      : null, // Không hiển thị ảnh mặc định
+
+                  child: const Align(
                     alignment: Alignment.bottomRight,
                     child: Icon(
                       Icons.camera_alt,
@@ -78,7 +123,7 @@ class _EditProfileScreenState extends State<EditProfileUser> {
               ),
               const SizedBox(height: 20),
 
-              // TextField for Name
+              // Full Name TextField
               TextField(
                 controller: _nameController,
                 decoration: const InputDecoration(
@@ -88,7 +133,7 @@ class _EditProfileScreenState extends State<EditProfileUser> {
               ),
               const SizedBox(height: 16),
 
-              // TextField for Email
+              // Email TextField
               TextField(
                 controller: _emailController,
                 decoration: const InputDecoration(
@@ -98,7 +143,7 @@ class _EditProfileScreenState extends State<EditProfileUser> {
               ),
               const SizedBox(height: 16),
 
-              // TextField for Phone Number
+              // Phone Number TextField
               TextField(
                 controller: _phoneController,
                 decoration: const InputDecoration(
@@ -108,7 +153,7 @@ class _EditProfileScreenState extends State<EditProfileUser> {
               ),
               const SizedBox(height: 16),
 
-              // TextField for Address
+              // Address TextField
               TextField(
                 controller: _addressController,
                 decoration: const InputDecoration(
@@ -125,9 +170,7 @@ class _EditProfileScreenState extends State<EditProfileUser> {
                   padding:
                       const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 ),
-                onPressed: () {
-                  // Xử lý logic lưu thông tin cập nhật và ảnh ở đây
-                },
+                onPressed: _saveProfile, // Call save profile method
                 child: const Text(
                   'Save Changes',
                   style: TextStyle(fontSize: 18, color: Colors.white),

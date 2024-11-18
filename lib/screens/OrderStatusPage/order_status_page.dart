@@ -5,6 +5,8 @@ import '../../constants.dart';
 import 'order_details_page.dart';
 import '../../models/order.dart';
 import '../../service/OrderService.dart';
+import '../../service/OrderReturnService.dart';
+import '../../models/orderReturn.dart';
 
 class OrderStatusPage extends StatelessWidget {
   final int tabIndex; // Nhận chỉ mục tab từ Profile
@@ -14,7 +16,7 @@ class OrderStatusPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return DefaultTabController(
-      length: 7, // Có 7 trạng thái đơn hàng
+      length: 6, // Có 7 trạng thái đơn hàng
       initialIndex: tabIndex, // Chỉ định tab bắt đầu
       child: Scaffold(
         appBar: AppBar(
@@ -39,7 +41,7 @@ class OrderStatusPage extends StatelessWidget {
               Tab(text: 'Shipped'),
               Tab(text: 'Complete'),
               Tab(text: 'Cancel'),
-              Tab(text: 'Return'),
+              
             ],
             labelColor: Colors.white,
             unselectedLabelColor: Colors.grey,
@@ -54,7 +56,7 @@ class OrderStatusPage extends StatelessWidget {
             OrderList(status: 'Shipped'),
             OrderList(status: 'Complete'),
             OrderList(status: 'Cancel'),
-            OrderList(status: 'Return'),
+            
           ],
         ),
       ),
@@ -72,6 +74,7 @@ class OrderList extends StatefulWidget {
 }
 
 class _OrderListState extends State<OrderList> {
+  Future<List<OrderReturn>>? _orderReturnsFuture;
   Future<List<Order>>? _ordersFuture;
   late String _token;
 
@@ -92,7 +95,6 @@ class _OrderListState extends State<OrderList> {
       throw Exception("Token không hợp lệ.");
     }
   }
-
   Future<void> _updateOrderStatus(Order order) async {
     try {
       await OrderService().updateOrderStatus(
@@ -114,58 +116,58 @@ class _OrderListState extends State<OrderList> {
 
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<Order>>(
-      future: _ordersFuture,
-      builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return const Center(child: CircularProgressIndicator());
-        } else if (snapshot.hasError) {
-          return Center(child: Text('Lỗi: ${snapshot.error}'));
-        } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
-          return const Center(child: Text('No orders.'));
-        } else {
-          List<Order> orders = snapshot.data!;
-
-          return ListView.builder(
-            itemCount: orders.length,
-            itemBuilder: (context, index) {
-              final order = orders[index];
-              return Card(
-                elevation: 3,
-                child: ListTile(
-                  leading: Icon(
-                    Icons.shopping_bag,
-                    color: _getStatusColor(widget.status),
+      // Hiển thị danh sách đơn hàng như trước đây
+      return FutureBuilder<List<Order>>(
+        future: _ordersFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          } else if (snapshot.hasError) {
+            return Center(child: Text('Lỗi: ${snapshot.error}'));
+          } else if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return const Center(child: Text('No orders.'));
+          } else {
+            List<Order> orders = snapshot.data!;
+            return ListView.builder(
+              itemCount: orders.length,
+              itemBuilder: (context, index) {
+                final order = orders[index];
+                return Card(
+                  elevation: 3,
+                  child: ListTile(
+                    leading: Icon(
+                      Icons.shopping_bag,
+                      color: _getStatusColor(widget.status),
+                    ),
+                    title: Text('Order code: #${order.orderCode}'),
+                    subtitle: Text(
+                        'Total Amount: \$${order.totalAmount.toStringAsFixed(2)}'),
+                    trailing: widget.status == 'Shipped'
+                        ? ElevatedButton(
+                            onPressed: () => _updateOrderStatus(order),
+                            child: const Text('Complete'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: kprimaryColor,
+                              foregroundColor: Colors.white,
+                            ),
+                          )
+                        : null,
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              OrderDetailPage(orderId: order.id.toString()),
+                        ),
+                      );
+                    },
                   ),
-                  title: Text('Order code:#${order.orderCode}'),
-                  subtitle: Text(
-                      'Total Amount: \$${order.totalAmount.toStringAsFixed(2)}'),
-                  trailing: widget.status == 'Shipped'
-                      ? ElevatedButton(
-                          onPressed: () => _updateOrderStatus(order),
-                          child: const Text('Complete'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: kprimaryColor,
-                            foregroundColor: Colors.white,
-                          ),
-                        )
-                      : null,
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            OrderDetailPage(orderId: order.id.toString()),
-                      ),
-                    );
-                  },
-                ),
-              );
-            },
-          );
-        }
-      },
-    );
+                );
+              },
+            );
+          }
+        },
+      );
   }
 
   Color _getStatusColor(String status) {
@@ -182,8 +184,6 @@ class _OrderListState extends State<OrderList> {
         return Colors.green;
       case 'Cancel':
         return Colors.red;
-      case 'Return':
-        return Colors.brown;
       default:
         return Colors.grey;
     }

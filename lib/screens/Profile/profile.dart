@@ -1,13 +1,37 @@
+import 'dart:convert';
+import 'dart:typed_data';
 import 'package:flutter/material.dart';
 import '../OrderStatusPage/order_status_page.dart';
 import '../ChangePassword/change_password_screen.dart';
 import '../Profile/profile_user_screen.dart';
-import '../Profile/product_review_page.dart'; // Import trang review sản phẩm
+import '../Profile/product_review_page.dart'; 
+import '../Profile/return_requests_page.dart';
 import '../../constants.dart';
 import '../../service/AuthService.dart';
+import '../../models/user.dart'; 
 
-class Profile extends StatelessWidget {
+class Profile extends StatefulWidget {
   const Profile({super.key});
+
+  @override
+  _ProfileState createState() => _ProfileState();
+}
+
+class _ProfileState extends State<Profile> {
+  late Future<Map<String, dynamic>> _profileDataFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _profileDataFuture = AuthService().getProfile(); // Lấy dữ liệu ban đầu
+  }
+
+  // Làm mới dữ liệu
+  void _refreshProfileData() {
+    setState(() {
+      _profileDataFuture = AuthService().getProfile(); // Lấy dữ liệu mới
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -22,174 +46,215 @@ class Profile extends StatelessWidget {
           fontSize: 24,
         ),
         iconTheme: IconThemeData(
-          color: Colors.white, 
+          color: Colors.white,
         ),
       ),
       body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Các phần nội dung trước đây
-            Padding(
-              padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
-              child: Row(
-                children: [
-                  const CircleAvatar(
-                    radius: 30,
-                    backgroundImage: AssetImage("images/profile3.png"),
-                  ),
-                  const SizedBox(width: 12),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: const [
-                      Text(
-                        "Andrew Ainsley",
-                        style: TextStyle(
-                            fontWeight: FontWeight.bold, fontSize: 20),
-                      ),
-                      Text(
-                        "andrew_ainsley@yourdomain.com",
-                        style: TextStyle(color: Colors.black54, fontSize: 14),
-                      ),
-                    ],
-                  ),
-                  const Spacer(),
-                  IconButton(
-                    icon: const Icon(Icons.settings),
-                    onPressed: () {},
-                  ),
-                ],
-              ),
-            ),
-            // Thay phần quảng cáo bằng các icon trạng thái đơn hàng
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatusIcon(Icons.hourglass_empty, "Pending", context, 0),
-                  _buildStatusIcon(Icons.check_circle, "Confirmed", context, 1),
-                  _buildStatusIcon(Icons.local_shipping, "In Delivery", context, 2),
-                  _buildStatusIcon(Icons.rate_review, "Reviewed", context, 3, navigateToReview: true), // Thêm đối số navigateToReview
-                ],
-              ),
-            ),
+        child: FutureBuilder<Map<String, dynamic>>(
+          future: AuthService().getProfile(), // Get the profile data as Map
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            } else if (snapshot.hasError) {
+              return Center(child: Text('Error: ${snapshot.error}'));
+            } else if (!snapshot.hasData) {
+              return const Center(child: Text('No user data available'));
+            } else {
+              final profileData = snapshot.data!;
 
-            const SizedBox(height: 20),
+              // Convert the profile data to a User object
+              final user = User.fromJson(profileData);
 
-            // Các phần danh sách chức năng
-            _buildProfileOption(
-              context,
-              icon: Icons.person,
-              title: 'Profile',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ProfileUserScreen()),
-                );
-              },
-            ),
-            _buildProfileOption(
-              context,
-              icon: Icons.lock, // Biểu tượng thay đổi mật khẩu
-              title: 'Change Password',
-              onTap: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                      builder: (context) => const ChangePasswordScreen()),
-                );
-              },
-            ),
-            _buildProfileOption(
-              context,
-              icon: Icons.storage,
-              title: 'Data Saver & Storage',
-              onTap: () {
-                // Chức năng tiết kiệm dữ liệu và lưu trữ
-              },
-            ),
-            _buildProfileOption(
-              context,
-              icon: Icons.security,
-              title: 'Security',
-              onTap: () {
-                // Chức năng bảo mật
-              },
-            ),
-            _buildProfileOption(
-              context,
-              icon: Icons.language,
-              title: 'Language',
-              trailing: const Text("English (US)"),
-              onTap: () {
-                // Chức năng chọn ngôn ngữ
-              },
-            ),
-            ListTile(
-              leading: const Icon(Icons.dark_mode),
-              title: const Text(
-                'Dark Mode',
-                style: TextStyle(fontSize: 16),
-              ),
-              trailing: Switch(
-                value: false,
-                onChanged: (value) {
-                  // Chức năng bật tắt chế độ tối
-                },
-              ),
-            ),
-            // Đặt nút Log Out cuối cùng mà không dùng Spacer
-            Align(
-              alignment: Alignment.bottomCenter,
-              child: Padding(
-                padding: const EdgeInsets.only(bottom: 50),
-                child: ElevatedButton(
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: kprimaryColor,
-                  ),
-                  onPressed: () {
-                    // Hiện hộp thoại xác nhận trước khi đăng xuất
-                    showDialog(
-                      context: context,
-                      builder: (context) => AlertDialog(
-                        title: const Text('Log Out'),
-                        content:
-                            const Text('Are you sure you want to log out?'),
-                        actions: [
-                          TextButton(
-                            onPressed: () {
-                              Navigator.pop(context);
-                            },
-                            child: const Text('Cancel'),
-                          ),
-                          TextButton(
-                            onPressed: () async {
-                              await AuthService().logout(context);
-                            },
-                            child: const Text('Log Out'),
-                          ),
-                        ],
-                      ),
-                    );
-                  },
-                  child: const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 40),
-                    child: Text(
-                      'Log Out',
-                      style: TextStyle(color: Colors.white, fontSize: 18),
+              final String userName = user.fullName ?? 'Unknown';
+              final String userEmail = user.email ?? 'No email';
+              final String userAvatarBase64 = user.thumbnail ?? '';
+
+              // If avatar is available, decode it from Base64
+              Uint8List? userAvatar = userAvatarBase64.isNotEmpty
+                  ? base64Decode(userAvatarBase64)
+                  : null;
+
+              return Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.symmetric(
+                        vertical: 20, horizontal: 16),
+                    child: Row(
+                      children: [
+                        CircleAvatar(
+                          radius: 30,
+                          backgroundImage: userAvatar != null
+                              ? MemoryImage(
+                                  userAvatar) // Display avatar from base64
+                              : const AssetImage("images/profile3.jpg")
+                                  as ImageProvider, // Default image
+                        ),
+                        const SizedBox(width: 12),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              userName,
+                              style: const TextStyle(
+                                  fontWeight: FontWeight.bold, fontSize: 20),
+                            ),
+                            Text(
+                              userEmail,
+                              style: const TextStyle(
+                                  color: Colors.black54, fontSize: 14),
+                            ),
+                          ],
+                        ),
+                        const Spacer(),
+                        IconButton(
+                          icon: const Icon(Icons.settings),
+                          onPressed: () {},
+                        ),
+                      ],
                     ),
                   ),
-                ),
-              ),
+                  // Additional widgets and options
+                 Padding(
+  padding: const EdgeInsets.symmetric(horizontal: 14),
+  child: Row(
+    mainAxisAlignment: MainAxisAlignment.spaceAround,
+    children: [
+      _buildStatusIcon(
+        Icons.hourglass_empty, "Pending", context, 0),
+      _buildStatusIcon(
+        Icons.check_circle, "Confirmed", context, 1),
+      _buildStatusIcon(
+        Icons.local_shipping, "In Delivery", context, 2),
+      _buildStatusIcon(
+        Icons.rate_review, "Reviewed", context, 3,
+        navigateToReview: true),
+      _buildStatusIcon(
+        Icons.refresh, "Return", context, 4, 
+        onTap: () {
+          // Khi ấn vào icon "Return", chuyển đến trang yêu cầu hoàn trả
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const ReturnRequestsPage(),
             ),
-          ],
+          );
+        },
+      ),
+    ],
+  ),
+),
+
+                  const SizedBox(height: 20),
+                  // Other profile options
+                  _buildProfileOption(
+                    context,
+                    icon: Icons.person,
+                    title: 'Profile',
+                    onTap: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => const ProfileUserScreen(),
+                        ),
+                      );
+                      if (result == true) {
+                        _refreshProfileData(); // Làm mới dữ liệu nếu có cập nhật
+                      }
+                    },
+                  ),
+
+                  _buildProfileOption(
+                    context,
+                    icon: Icons.lock,
+                    title: 'Change Password',
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => const ChangePasswordScreen()),
+                      );
+                    },
+                  ),
+                  _buildProfileOption(
+                    context,
+                    icon: Icons.storage,
+                    title: 'Data Saver & Storage',
+                    onTap: () {},
+                  ),
+                  _buildProfileOption(
+                    context,
+                    icon: Icons.security,
+                    title: 'Security',
+                    onTap: () {},
+                  ),
+                  _buildProfileOption(
+                    context,
+                    icon: Icons.language,
+                    title: 'Language',
+                    trailing: const Text("English (US)"),
+                    onTap: () {},
+                  ),
+                  ListTile(
+                    leading: const Icon(Icons.dark_mode),
+                    title:
+                        const Text('Dark Mode', style: TextStyle(fontSize: 16)),
+                    trailing: Switch(
+                      value: false,
+                      onChanged: (value) {},
+                    ),
+                  ),
+                  Align(
+                    alignment: Alignment.bottomCenter,
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 50),
+                      child: ElevatedButton(
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: kprimaryColor,
+                        ),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (context) => AlertDialog(
+                              title: const Text('Log Out'),
+                              content: const Text(
+                                  'Are you sure you want to log out?'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () {
+                                    Navigator.pop(context);
+                                  },
+                                  child: const Text('Cancel'),
+                                ),
+                                TextButton(
+                                  onPressed: () async {
+                                    await AuthService().logout(context);
+                                  },
+                                  child: const Text('Log Out'),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        child: const Padding(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 12, horizontal: 40),
+                          child: Text(
+                            'Log Out',
+                            style: TextStyle(color: Colors.white, fontSize: 18),
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
+              );
+            }
+          },
         ),
       ),
     );
   }
 
-  // Hàm tạo ListTile cho các mục
   Widget _buildProfileOption(BuildContext context,
       {required IconData icon,
       required String title,
@@ -209,31 +274,30 @@ class Profile extends StatelessWidget {
     );
   }
 
-  // Hàm hỗ trợ tạo icon với trạng thái, thêm đối số navigateToReview
-  Widget _buildStatusIcon(IconData icon, String title, BuildContext context, int tabIndex, {bool navigateToReview = false}) {
-    return GestureDetector(
-      onTap: () {
-        if (navigateToReview) {
-          // Điều hướng đến trang review sản phẩm khi nhấn vào icon review
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ProductReviewPage(),
-            ),
-          );
-        } else {
-          // Điều hướng đến OrderStatusPage và chuyển đến tab tương ứng
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => OrderStatusPage(tabIndex: tabIndex),
-            ),
-          );
-        }
-      },
+Widget _buildStatusIcon(
+    IconData icon, String title, BuildContext context, int tabIndex,
+    {bool navigateToReview = false, VoidCallback? onTap}) {
+  return GestureDetector(
+    onTap: onTap ?? () {
+      if (navigateToReview) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => const ProductReviewPage(),
+          ),
+        );
+      } else {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => OrderStatusPage(tabIndex: tabIndex),
+          ),
+        );
+      }
+    },
       child: Column(
         children: [
-          Icon(icon, size: 30, color: kprimaryColor), // Icon với kích thước và màu sắc
+          Icon(icon, size: 30, color: kprimaryColor),
           const SizedBox(height: 8),
           Text(
             title,
