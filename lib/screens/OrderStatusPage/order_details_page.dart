@@ -246,7 +246,7 @@ class _OrderDetailPageState extends State<OrderDetailPage> {
                     children: [
                       Text('Price: \$${product.price}'),
                       // Hiển thị nút replay nếu trạng thái đơn hàng không phải là '1'
-                      if (orderStatus != '1')
+                      if (orderStatus == 'complete' && product.status == 0)
                         IconButton(
                           icon: Icon(Icons.replay, color: Colors.blue),
                           onPressed: () {

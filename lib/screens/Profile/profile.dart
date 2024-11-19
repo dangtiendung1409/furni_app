@@ -177,14 +177,14 @@ class _ProfileState extends State<Profile> {
                   ),
                   _buildProfileOption(
                     context,
-                    icon: Icons.storage,
-                    title: 'Data Saver & Storage',
-                    onTap: () {},
+                    icon: Icons.location_on,
+                    title: 'Location',
+                    onTap: () {}, 
                   ),
                   _buildProfileOption(
                     context,
-                    icon: Icons.security,
-                    title: 'Security',
+                    icon: Icons.email,
+                    title: 'Email',
                     onTap: () {},
                   ),
                   _buildProfileOption(
