@@ -140,36 +140,51 @@ class _CheckOutScreenState extends State<CheckOutScreen> {
       print('Lỗi khi lấy dữ liệu phường xã: $e');
     }
   }
+Future<void> _selectDateTime(BuildContext context) async {
+  DateTime currentDateTime = DateTime.now();
 
-  Future<void> _selectDateTime(BuildContext context) async {
-    DateTime currentDateTime = DateTime.now();
+  // Chọn ngày
+  final DateTime? pickedDate = await showDatePicker(
+    context: context,
+    initialDate: currentDateTime,
+    firstDate: currentDateTime, // Không cho phép chọn ngày trong quá khứ
+    lastDate: DateTime(2101),
+  );
 
-    final DateTime? pickedDate = await showDatePicker(
+  if (pickedDate != null) {
+    // Chọn giờ và phút
+    final TimeOfDay? pickedTime = await showTimePicker(
       context: context,
-      initialDate: currentDateTime,
-      firstDate: DateTime(2000),
-      lastDate: DateTime(2101),
+      initialTime: TimeOfDay.fromDateTime(currentDateTime),
     );
 
-    if (pickedDate != null) {
-      final TimeOfDay? pickedTime = await showTimePicker(
-        context: context,
-        initialTime: TimeOfDay.fromDateTime(currentDateTime),
+    if (pickedTime != null) {
+      // Kết hợp ngày và giờ đã chọn
+      final DateTime selected = DateTime(
+        pickedDate.year,
+        pickedDate.month,
+        pickedDate.day,
+        pickedTime.hour,
+        pickedTime.minute,
       );
 
-      if (pickedTime != null) {
-        setState(() {
-          selectedDateTime = DateTime(
-            pickedDate.year,
-            pickedDate.month,
-            pickedDate.day,
-            pickedTime.hour,
-            pickedTime.minute,
-          );
-        });
+      // Kiểm tra nếu thời gian đã chọn không ở trong quá khứ
+      if (selected.isBefore(currentDateTime)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Selected time is in the past. Please choose a future time.")),
+        );
+        return; // Không cập nhật nếu thời gian đã qua
       }
+
+      // Cập nhật nếu thời gian hợp lệ
+      setState(() {
+        selectedDateTime = selected;
+      });
     }
   }
+}
+
+
 
   Future<void> _submitOrder() async {
     final orderDetails = {

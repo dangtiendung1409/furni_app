@@ -45,44 +45,39 @@ class _EditProfileScreenState extends State<EditProfileUser> {
     }
   }
 
-  Future<void> _saveProfile() async {
-    try {
-      String? base64Image;
-      if (_profileImage != null) {
-        final imageBytes = await _profileImage!.readAsBytes();
-        base64Image = base64Encode(imageBytes);
-      }
-
-      final updatedData = {
-        'full_name': _nameController.text.isEmpty ? null : _nameController.text,
-        'email': _emailController.text.isEmpty ? null : _emailController.text,
-        'phone_number':
-            _phoneController.text.isEmpty ? null : _phoneController.text,
-        'address':
-            _addressController.text.isEmpty ? null : _addressController.text,
-        'thumbnail': base64Image,
-      };
-
-      updatedData.removeWhere((key, value) => value == null);
-
-      await AuthService().updateProfile(updatedData);
-
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Profile updated successfully')),
-      );
-
-      // Quay lại màn hình Profile và làm mới
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(builder: (context) => const Profile()),
-        (route) => false, // Xóa toàn bộ stack màn hình
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Failed to update profile: $e')),
-      );
+Future<void> _saveProfile() async {
+  try {
+    String? base64Image;
+    if (_profileImage != null) {
+      final imageBytes = await _profileImage!.readAsBytes();
+      base64Image = base64Encode(imageBytes);
     }
+
+    final updatedData = {
+      'full_name': _nameController.text.isEmpty ? null : _nameController.text,
+      'email': _emailController.text.isEmpty ? null : _emailController.text,
+      'phone_number': _phoneController.text.isEmpty ? null : _phoneController.text,
+      'address': _addressController.text.isEmpty ? null : _addressController.text,
+      'thumbnail': base64Image,
+    };
+
+    updatedData.removeWhere((key, value) => value == null);
+
+    await AuthService().updateProfile(updatedData);
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Profile updated successfully')),
+    );
+
+    // Quay lại màn hình trước (Profile)
+    Navigator.pop(context, true); // Gửi tín hiệu refresh nếu cần
+  } catch (e) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to update profile: $e')),
+    );
   }
+}
+
 
   @override
   Widget build(BuildContext context) {

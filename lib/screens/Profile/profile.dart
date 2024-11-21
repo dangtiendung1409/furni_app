@@ -4,11 +4,11 @@ import 'package:flutter/material.dart';
 import '../OrderStatusPage/order_status_page.dart';
 import '../ChangePassword/change_password_screen.dart';
 import '../Profile/profile_user_screen.dart';
-import '../Profile/product_review_page.dart'; 
+import '../Profile/product_review_page.dart';
 import '../Profile/return_requests_page.dart';
 import '../../constants.dart';
 import '../../service/AuthService.dart';
-import '../../models/user.dart'; 
+import '../../models/user.dart';
 
 class Profile extends StatefulWidget {
   const Profile({super.key});
@@ -24,6 +24,13 @@ class _ProfileState extends State<Profile> {
   void initState() {
     super.initState();
     _profileDataFuture = AuthService().getProfile(); // Lấy dữ liệu ban đầu
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    // Gọi lại API mỗi khi widget này được hiển thị lại
+    _refreshProfileData();
   }
 
   // Làm mới dữ liệu
@@ -114,35 +121,39 @@ class _ProfileState extends State<Profile> {
                     ),
                   ),
                   // Additional widgets and options
-                 Padding(
-  padding: const EdgeInsets.symmetric(horizontal: 14),
-  child: Row(
-    mainAxisAlignment: MainAxisAlignment.spaceAround,
-    children: [
-      _buildStatusIcon(
-        Icons.hourglass_empty, "Pending", context, 0),
-      _buildStatusIcon(
-        Icons.check_circle, "Confirmed", context, 1),
-      _buildStatusIcon(
-        Icons.local_shipping, "In Delivery", context, 2),
-      _buildStatusIcon(
-        Icons.rate_review, "Reviewed", context, 3,
-        navigateToReview: true),
-      _buildStatusIcon(
-        Icons.refresh, "Return", context, 4, 
-        onTap: () {
-          // Khi ấn vào icon "Return", chuyển đến trang yêu cầu hoàn trả
-          Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const ReturnRequestsPage(),
-            ),
-          );
-        },
-      ),
-    ],
-  ),
-),
+                  Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 14),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceAround,
+                      children: [
+                        _buildStatusIcon(
+                            Icons.hourglass_empty, "Pending", context, 0),
+                        _buildStatusIcon(
+                            Icons.check_circle, "Confirmed", context, 1),
+                        _buildStatusIcon(
+                            Icons.local_shipping, "In Delivery", context, 2),
+                        _buildStatusIcon(
+                            Icons.rate_review, "Reviewed", context, 3,
+                            navigateToReview: true),
+                        _buildStatusIcon(
+                          Icons.refresh,
+                          "Return",
+                          context,
+                          4,
+                          onTap: () {
+                            // Khi ấn vào icon "Return", chuyển đến trang yêu cầu hoàn trả
+                            Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    const ReturnRequestsPage(),
+                              ),
+                            );
+                          },
+                        ),
+                      ],
+                    ),
+                  ),
 
                   const SizedBox(height: 20),
                   // Other profile options
@@ -151,15 +162,13 @@ class _ProfileState extends State<Profile> {
                     icon: Icons.person,
                     title: 'Profile',
                     onTap: () async {
-                      final result = await Navigator.push(
+                      Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => const ProfileUserScreen(),
-                        ),
-                      );
-                      if (result == true) {
-                        _refreshProfileData(); // Làm mới dữ liệu nếu có cập nhật
-                      }
+                            builder: (context) => const ProfileUserScreen()),
+                      ).then((_) {
+                        _refreshProfileData(); // Làm mới dữ liệu khi quay lại
+                      });
                     },
                   ),
 
@@ -179,7 +188,7 @@ class _ProfileState extends State<Profile> {
                     context,
                     icon: Icons.location_on,
                     title: 'Location',
-                    onTap: () {}, 
+                    onTap: () {},
                   ),
                   _buildProfileOption(
                     context,
@@ -274,27 +283,28 @@ class _ProfileState extends State<Profile> {
     );
   }
 
-Widget _buildStatusIcon(
-    IconData icon, String title, BuildContext context, int tabIndex,
-    {bool navigateToReview = false, VoidCallback? onTap}) {
-  return GestureDetector(
-    onTap: onTap ?? () {
-      if (navigateToReview) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => const ProductReviewPage(),
-          ),
-        );
-      } else {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OrderStatusPage(tabIndex: tabIndex),
-          ),
-        );
-      }
-    },
+  Widget _buildStatusIcon(
+      IconData icon, String title, BuildContext context, int tabIndex,
+      {bool navigateToReview = false, VoidCallback? onTap}) {
+    return GestureDetector(
+      onTap: onTap ??
+          () {
+            if (navigateToReview) {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const ProductReviewPage(),
+                ),
+              );
+            } else {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => OrderStatusPage(tabIndex: tabIndex),
+                ),
+              );
+            }
+          },
       child: Column(
         children: [
           Icon(icon, size: 30, color: kprimaryColor),
