@@ -3,6 +3,7 @@ import '../../constants.dart';
 import '../../service/OrderService.dart';
 import '../Profile/profile.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import '../OrderStatusPage/order_status_page.dart';
 
 class CancelOrderReasonPage extends StatefulWidget {
   final String orderId;
@@ -41,13 +42,13 @@ class _CancelOrderReasonPageState extends State<CancelOrderReasonPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text("Order status updated successfully")),
       );
-      Navigator.pushAndRemoveUntil(
-        context,
-        MaterialPageRoute(
-          builder: (context) => const Profile(),
-        ),
-        (route) => false,
-      );
+Navigator.push(
+  context,
+  MaterialPageRoute(
+    builder: (context) => const OrderStatusPage(tabIndex: 5), // Tab "Cancel"
+  ),
+);
+
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text("Failed to cancel order: $e")),
